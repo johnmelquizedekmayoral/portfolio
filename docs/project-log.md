@@ -1,16 +1,34 @@
 # Portfolio Development Log
 
-## September 2026
+## September 16, 2026
 
-- GitHub account created — September 2026
-
-Date:
 Goal:
-What I built:
-Tools/technologies used:
-AI assistance used:
-Problems encountered:
-How I solved them:
-What I learned:
-Next step:
+Create my first developer portfolio.
 
+Completed:
+- Created GitHub account
+- Installed VS Code
+- Installed Node.js
+- Installed Git
+- Created Next.js project
+- Successfully ran website locally
+
+Technologies encountered:
+- Git
+- GitHub
+- Node.js
+- npm
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+
+What I learned:
+I learned the basic difference between Git and GitHub and how a Next.js development server works.
+
+//finished//
+
+Next:
+Build the homepage.
+
+## September 19, 2026
