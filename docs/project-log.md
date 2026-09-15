@@ -12,6 +12,11 @@ Completed:
 - Installed Git
 - Created Next.js project
 - Successfully ran website locally
+- Make first Git commit
+- Create public portfolio repository on GitHub
+- Connect local project to GitHub
+- Push project to GitHub
+- Built initial homepage
 
 Technologies encountered:
 - Git
@@ -24,11 +29,11 @@ Technologies encountered:
 - Tailwind CSS
 
 What I learned:
-I learned the basic difference between Git and GitHub and how a Next.js development server works.
+I learned the basic difference between Git and GitHub and how a Next.js development server works. I also learned how Git tracks local project changes and how GitHub stores the repository online.
 
 //finished//
 
 Next:
-Build the homepage.
+Redo the homepage.
 
 ## September 19, 2026
