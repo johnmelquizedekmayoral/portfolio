@@ -274,27 +274,11 @@ export default function PortfolioClient({
 
       <main className="relative z-10 min-h-screen text-slate-900">
         {/* HERO */}
-        <section className="mx-auto flex min-h-[92vh] w-full max-w-3xl flex-col items-center px-4 pb-7 pt-5 text-center sm:px-6">
+        <section className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 pb-7 pt-5 text-center sm:px-6">
           {/* COMPUTER SETUP */}
           <DesktopComputer
             photo={profile?.mainPhoto}
           />
-
-          {/* Avatar */}
-          <div className="-mt-10 flex h-36 w-36 items-end justify-center overflow-hidden border-[5px] border-slate-900 bg-yellow-300 shadow-[5px_5px_0_#0f172a] sm:h-40 sm:w-40">
-            {profile?.pixelAvatar?.asset?.url ? (
-              <img
-                src={profile.pixelAvatar.asset.url}
-                alt="Pixel RPG avatar"
-                className="h-[96%] w-[96%] object-contain object-bottom"
-                style={{
-                  imageRendering: 'pixelated',
-                }}
-              />
-            ) : (
-              <PixelAvatarPlaceholder />
-            )}
-          </div>
 
           <p className="mt-5 font-mono text-sm font-black uppercase tracking-[0.25em] text-blue-700">
             🎮 Player One
@@ -632,6 +616,7 @@ export default function PortfolioClient({
                   label={profile.email}
                   icon="↗"
                   external={false}
+                  className="max-w-full whitespace-normal break-all text-sm"
                 />
               )}
 
@@ -641,6 +626,7 @@ export default function PortfolioClient({
                   label={profile.phone}
                   icon="↗"
                   external={false}
+                  className="max-w-full whitespace-normal break-all text-sm"
                 />
               )}
 
@@ -649,6 +635,7 @@ export default function PortfolioClient({
                   href={profile.githubUrl}
                   label="GitHub"
                   icon="↗"
+                  className="max-w-full whitespace-normal break-all text-sm"
                 />
               )}
 
@@ -657,13 +644,14 @@ export default function PortfolioClient({
                   href={profile.linkedinUrl}
                   label="LinkedIn"
                   icon="↗"
+                  className="max-w-full whitespace-normal break-all text-sm"
                 />
               )}
             </div>
           </div>
         </GameSection>
 
-        <footer className="border-t border-sky-200/80 px-4 py-8 text-center">
+        <footer className="px-4 py-8 text-center">
           <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-600">
             🎮{' '}
             {profile?.fullName ??
@@ -699,7 +687,7 @@ function DesktopComputer({
   photo?: Profile['mainPhoto']
 }) {
   return (
-    <div className="relative w-full max-w-2xl pb-14">
+    <div className="relative w-full max-w-2xl pb-3">
       {/* Monitor */}
       <div className="relative mx-auto w-[92%] rounded-[18px] border-[6px] border-slate-900 bg-slate-700 p-3 shadow-[8px_8px_0_#0f172a] sm:w-[88%]">
         {/* Screen */}
@@ -796,19 +784,22 @@ function GameBackground({
   asset?: Asset
   mobileAsset?: Asset
 }) {
-  const desktopIsVideo =
-    asset?.mimeType?.startsWith('video/')
+  const desktopAsset = asset ?? mobileAsset
+  const phoneAsset = mobileAsset ?? asset
 
-  const mobileIsVideo =
-    mobileAsset?.mimeType?.startsWith('video/')
+  const desktopIsVideo =
+    desktopAsset?.mimeType?.startsWith('video/')
+
+  const phoneIsVideo =
+    phoneAsset?.mimeType?.startsWith('video/')
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* DESKTOP BACKGROUND */}
-      {asset?.url ? (
+    <div className="pointer-events-none fixed -inset-2 z-0 overflow-hidden bg-sky-400 [backface-visibility:hidden] [transform:translateZ(0)]">
+      {/* Desktop */}
+      {desktopAsset?.url ? (
         desktopIsVideo ? (
           <video
-            src={asset.url}
+            src={desktopAsset.url}
             autoPlay
             muted
             loop
@@ -816,24 +807,23 @@ function GameBackground({
             className="absolute inset-0 hidden h-full w-full object-cover object-center sm:block"
           />
         ) : (
-          <img
-            src={asset.url}
-            alt=""
-            className="absolute inset-0 hidden h-full w-full object-cover object-center sm:block"
+          <div
+            className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat sm:block"
             style={{
+              backgroundImage: `url(${desktopAsset.url})`,
               imageRendering: 'pixelated',
             }}
           />
         )
       ) : (
-        <div className="absolute inset-0 hidden bg-gradient-to-b from-sky-400 via-cyan-200 to-emerald-100 sm:block" />
+        <div className="absolute inset-0 hidden bg-sky-400 sm:block" />
       )}
 
-      {/* MOBILE BACKGROUND */}
-      {mobileAsset?.url ? (
-        mobileIsVideo ? (
+      {/* Mobile */}
+      {phoneAsset?.url ? (
+        phoneIsVideo ? (
           <video
-            src={mobileAsset.url}
+            src={phoneAsset.url}
             autoPlay
             muted
             loop
@@ -841,41 +831,17 @@ function GameBackground({
             className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
           />
         ) : (
-          <img
-            src={mobileAsset.url}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
             style={{
-              imageRendering: 'pixelated',
-            }}
-          />
-        )
-      ) : asset?.url ? (
-        desktopIsVideo ? (
-          <video
-            src={asset.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
-          />
-        ) : (
-          <img
-            src={asset.url}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
-            style={{
+              backgroundImage: `url(${phoneAsset.url})`,
               imageRendering: 'pixelated',
             }}
           />
         )
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-b from-sky-400 via-cyan-200 to-emerald-100 sm:hidden" />
+        <div className="absolute inset-0 bg-sky-400 sm:hidden" />
       )}
-
-      {/* Slight readability layer */}
-      <div className="absolute inset-0 bg-white/50" />
     </div>
   )
 }
@@ -901,125 +867,6 @@ function PixelCloud() {
   )
 }
 
-/* ---------------- AVATAR ---------------- */
-
-function PixelAvatarPlaceholder() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      className="h-[96%] w-[96%]"
-      shapeRendering="crispEdges"
-      aria-label="Pixel RPG character placeholder"
-      preserveAspectRatio="xMidYMax meet"
-    >
-      <rect width="16" height="16" fill="#fde047" />
-
-      <rect
-        x="4"
-        y="14"
-        width="8"
-        height="1"
-        fill="#a16207"
-      />
-
-      <rect
-        x="5"
-        y="2"
-        width="6"
-        height="1"
-        fill="#172554"
-      />
-
-      <rect
-        x="4"
-        y="3"
-        width="8"
-        height="2"
-        fill="#172554"
-      />
-
-      <rect
-        x="5"
-        y="5"
-        width="6"
-        height="4"
-        fill="#fdba74"
-      />
-
-      <rect
-        x="6"
-        y="6"
-        width="1"
-        height="1"
-        fill="#0f172a"
-      />
-
-      <rect
-        x="9"
-        y="6"
-        width="1"
-        height="1"
-        fill="#0f172a"
-      />
-
-      <rect
-        x="4"
-        y="9"
-        width="8"
-        height="3"
-        fill="#7c3aed"
-      />
-
-      <rect
-        x="3"
-        y="10"
-        width="1"
-        height="3"
-        fill="#fdba74"
-      />
-
-      <rect
-        x="12"
-        y="10"
-        width="1"
-        height="3"
-        fill="#fdba74"
-      />
-
-      <rect
-        x="5"
-        y="12"
-        width="2"
-        height="3"
-        fill="#1e3a8a"
-      />
-
-      <rect
-        x="9"
-        y="12"
-        width="2"
-        height="3"
-        fill="#1e3a8a"
-      />
-
-      <rect
-        x="13"
-        y="7"
-        width="1"
-        height="6"
-        fill="#64748b"
-      />
-
-      <rect
-        x="12"
-        y="9"
-        width="3"
-        height="1"
-        fill="#78350f"
-      />
-    </svg>
-  )
-}
 
 /* ---------------- SECTIONS ---------------- */
 
@@ -1031,7 +878,7 @@ function GameSection({
   children: React.ReactNode
 }) {
   return (
-    <section className="border-t border-slate-300/70 px-4 py-8 text-center sm:px-6 sm:py-10">
+    <section className="px-4 py-8 text-center sm:px-6 sm:py-10">
       <div className="mx-auto max-w-3xl">
         <h2 className="text-2xl font-black uppercase sm:text-3xl">
           {title}
@@ -1446,22 +1293,20 @@ function ActionLink({
   label,
   icon,
   external = true,
+  className = '',
 }: {
   href: string
   label: string
   icon: string
   external?: boolean
+  className?: string
 }) {
   return (
     <a
       href={href}
       target={external ? '_blank' : undefined}
-      rel={
-        external
-          ? 'noreferrer'
-          : undefined
-      }
-      className={clickableClass}
+      rel={external ? 'noreferrer' : undefined}
+      className={`${clickableClass} ${className}`}
     >
       {icon} {label}
     </a>
