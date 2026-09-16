@@ -189,7 +189,7 @@ const clickableClass =
   'cursor-pointer rounded-lg border-[3px] border-slate-900 bg-slate-200 px-4 py-2 font-semibold text-blue-700 underline decoration-2 underline-offset-2 shadow-[3px_3px_0_#0f172a] transition-all duration-150 hover:-translate-y-1 hover:scale-[1.02] hover:bg-slate-100 active:translate-y-0 active:scale-100'
 
 const sectionBoxClass =
-  'rounded-[22px] border-[3px] border-slate-900 bg-white/90 p-5 shadow-[4px_4px_0_#0f172a] sm:p-6'
+  'rounded-[22px] border-[3px] border-slate-900 bg-white/60 p-5 shadow-[4px_4px_0_#0f172a] sm:p-6'
 
 const miniBoxClass =
   'rounded-xl border-2 border-slate-900 bg-white/90 p-4 shadow-[2px_2px_0_#0f172a]'
