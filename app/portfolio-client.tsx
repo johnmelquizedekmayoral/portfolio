@@ -698,23 +698,20 @@ function GameBackground({
   const phoneAsset = mobileAsset ?? asset
 
   return (
-    <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-0 overflow-hidden bg-sky-200"
-      style={{
-        height: '100lvh',
-      }}
-    >
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-sky-200">
+      {/* Desktop */}
       <BackgroundLayer
         asset={desktopAsset}
         className="hidden sm:block"
       />
 
+      {/* Mobile */}
       <BackgroundLayer
         asset={phoneAsset}
         className="block sm:hidden"
       />
 
-      {/* White overlay: 25% */}
+      {/* White readability overlay */}
       <div className="absolute inset-0 bg-white/25" />
     </div>
   )
@@ -746,16 +743,17 @@ function BackgroundLayer({
         muted
         loop
         playsInline
-        className={`absolute -inset-[2%] h-[104%] w-[104%] object-cover object-center ${className}`}
+        className={`absolute inset-0 h-full w-full object-cover object-center ${className}`}
       />
     )
   }
 
   return (
     <div
-      className={`absolute -inset-[2%] bg-cover bg-center bg-no-repeat ${className}`}
+      className={`absolute inset-0 bg-cover bg-center bg-no-repeat ${className}`}
       style={{
         backgroundImage: `url(${asset.url})`,
+        backgroundPosition: '50% 50%',
         imageRendering: 'pixelated',
       }}
     />
