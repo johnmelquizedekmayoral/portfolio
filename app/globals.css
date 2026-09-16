@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes gameBackgroundMove {
+  0% {
+    transform: scale(1.06) translate3d(-1%, 0, 0);
+  }
+
+  50% {
+    transform: scale(1.09) translate3d(1%, -1%, 0);
+  }
+
+  100% {
+    transform: scale(1.06) translate3d(-1%, 1%, 0);
+  }
+}
+
+.game-background-motion {
+  animation: gameBackgroundMove 22s ease-in-out infinite alternate;
+  will-change: transform;
+}

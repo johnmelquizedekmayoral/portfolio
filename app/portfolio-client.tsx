@@ -808,7 +808,7 @@ function GameBackground({
           />
         ) : (
           <div
-            className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat sm:block"
+            className="game-background-motion absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: `url(${desktopAsset.url})`,
               imageRendering: 'pixelated',
@@ -828,11 +828,11 @@ function GameBackground({
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
+            className="game-background-motion absolute inset-0 h-full w-full object-cover object-center"
           />
         ) : (
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
+            className="game-background-motion absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: `url(${phoneAsset.url})`,
               imageRendering: 'pixelated',
@@ -842,7 +842,7 @@ function GameBackground({
       ) : (
         <div className="absolute inset-0 bg-sky-400 sm:hidden" />
       )}
-      <div className="absolute inset-0 bg-white/50" />
+      <div className="absolute inset-0 bg-white/75" />
     </div>
   )
 }
