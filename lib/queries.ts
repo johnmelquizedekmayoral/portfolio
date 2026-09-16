@@ -22,13 +22,12 @@ export const PORTFOLIO_QUERY = defineQuery(`
       }
     },
 
-    sidePhotos[]{
-      _key,
-      alt,
-      attire,
+    pixelAvatar{
       asset->{
         _id,
-        url
+        url,
+        mimeType,
+        originalFilename
       }
     },
 
@@ -53,11 +52,20 @@ export const PORTFOLIO_QUERY = defineQuery(`
     showExperience,
     sectionOrder,
     seoTitle,
-    seoDescription
+    seoDescription,
+
+    backgroundMedia{
+      asset->{
+        _id,
+        url,
+        mimeType,
+        originalFilename
+      }
+    }
   },
 
   "timeline": *[_type == "timelineEntry"]
-    | order(sortOrder asc){
+    | order(sortOrder desc){
       _id,
       yearLabel,
       title,
@@ -83,7 +91,41 @@ export const PORTFOLIO_QUERY = defineQuery(`
       githubUrl,
       playStoreUrl,
       ndaNote,
-      sortOrder
+      sortOrder,
+
+      proofs[]{
+        _key,
+        kind,
+        title,
+        caption,
+        url,
+
+        image{
+          alt,
+          asset->{
+            _id,
+            url
+          }
+        },
+
+        video{
+          asset->{
+            _id,
+            url,
+            mimeType,
+            originalFilename
+          }
+        },
+
+        file{
+          asset->{
+            _id,
+            url,
+            mimeType,
+            originalFilename
+          }
+        }
+      }
     },
 
   "skills": *[_type == "skill"]

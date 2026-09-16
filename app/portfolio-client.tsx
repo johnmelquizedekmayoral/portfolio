@@ -1,18 +1,12 @@
 'use client'
 
-import {useMemo, useState} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 
 type Asset = {
   _id?: string
   url?: string
+  mimeType?: string
   originalFilename?: string
-}
-
-type ProfileImage = {
-  _key?: string
-  alt?: string
-  attire?: string
-  asset?: Asset
 }
 
 type Profile = {
@@ -32,7 +26,9 @@ type Profile = {
     asset?: Asset
   }
 
-  sidePhotos?: ProfileImage[]
+  pixelAvatar?: {
+    asset?: Asset
+  }
 
   resume?: {
     asset?: Asset
@@ -52,6 +48,10 @@ type Settings = {
   showExperience?: boolean
 
   sectionOrder?: string[]
+
+  backgroundMedia?: {
+    asset?: Asset
+  }
 }
 
 type TimelineItem = {
@@ -62,6 +62,27 @@ type TimelineItem = {
   summary?: string
   unlocked?: string[]
   sortOrder?: number
+}
+
+type ProjectProof = {
+  _key: string
+  kind?: 'image' | 'video' | 'file' | 'link'
+  title?: string
+  caption?: string
+  url?: string
+
+  image?: {
+    alt?: string
+    asset?: Asset
+  }
+
+  video?: {
+    asset?: Asset
+  }
+
+  file?: {
+    asset?: Asset
+  }
 }
 
 type Project = {
@@ -80,6 +101,7 @@ type Project = {
   playStoreUrl?: string
   ndaNote?: string
   sortOrder?: number
+  proofs?: ProjectProof[]
 }
 
 type Skill = {
@@ -136,22 +158,35 @@ export type PortfolioData = {
   engineering?: EngineeringHighlight[]
 }
 
-const skillCategoryLabels: Record<string, string> = {
-  core: 'Core Build',
-  programming: 'Programming',
-  web: 'Web Development',
-  game: 'Game Development',
-  engineering: 'Engineering',
-  ai: 'AI / Automation',
-  tools: 'Tools',
+const skillLabels: Record<string, string> = {
+  core: '🧠 Core',
+  programming: '💻 Programming',
+  web: '🌐 Web',
+  game: '🎮 Game Dev',
+  engineering: '⚡ Engineering',
+  ai: '🤖 AI / Automation',
+  tools: '🧰 Tools',
 }
 
-const projectStatusLabels: Record<string, string> = {
-  inProgress: 'In Progress',
-  completed: 'Completed',
-  published: 'Published',
-  archived: 'Archived',
+const categoryOrder = [
+  'programming',
+  'game',
+  'engineering',
+  'web',
+  'ai',
+  'tools',
+  'core',
+]
+
+const statusLabels: Record<string, string> = {
+  inProgress: '⚔ ACTIVE',
+  completed: '✅ COMPLETE',
+  published: '🌎 PUBLISHED',
+  archived: '📦 ARCHIVED',
 }
+
+const clickableClass =
+  'cursor-pointer rounded-lg border-[3px] border-slate-900 bg-slate-200 px-4 py-2 font-semibold text-blue-700 underline decoration-2 underline-offset-2 shadow-[3px_3px_0_#0f172a] transition-all duration-150 hover:-translate-y-1 hover:scale-[1.02] hover:bg-slate-100 active:translate-y-0 active:scale-100'
 
 export default function PortfolioClient({
   data,
@@ -168,419 +203,1014 @@ export default function PortfolioClient({
   const experiences = data.experience ?? []
   const engineering = data.engineering ?? []
 
-  const [activeEra, setActiveEra] = useState(
-    Math.max(timeline.length - 1, 0),
-  )
+  const [selectedProject, setSelectedProject] =
+    useState<Project | null>(null)
 
-  const [projectFilter, setProjectFilter] =
-    useState<'public' | 'limited' | 'archive'>('public')
+  useEffect(() => {
+    if (!selectedProject) return
 
-  const activeTimeline = timeline[activeEra]
+    const original = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
 
-  const filteredProjects = projects.filter(
-    (project) => project.visibility === projectFilter,
-  )
-
-  const groupedSkills = useMemo(() => {
-    const groups: Record<string, Skill[]> = {}
-
-    for (const skill of skills) {
-      const category = skill.category ?? 'core'
-
-      if (!groups[category]) {
-        groups[category] = []
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedProject(null)
       }
-
-      groups[category].push(skill)
     }
 
-    return groups
-  }, [skills])
+    window.addEventListener('keydown', closeWithEscape)
+
+    return () => {
+      document.body.style.overflow = original
+      window.removeEventListener('keydown', closeWithEscape)
+    }
+  }, [selectedProject])
 
   const titles = profile?.professionalTitles ?? []
 
-  const sectionOrder =
-    settings?.sectionOrder?.length
-      ? settings.sectionOrder
-      : [
-          'timeline',
-          'projects',
-          'experience',
-          'skills',
-          'engineering',
-          'achievements',
-        ]
+  const skillGroups = useMemo(() => {
+    const groups = categoryOrder
+      .map((category) => ({
+        category,
+        skills: skills.filter(
+          (skill) => skill.category === category,
+        ),
+      }))
+      .filter((group) => group.skills.length > 0)
 
-  const renderSection = (section: string) => {
-    switch (section) {
-      case 'timeline':
-        if (!settings?.showTimeline || timeline.length === 0) {
-          return null
-        }
+    // Highest stat first
+    return groups.sort(
+      (a, b) => b.skills.length - a.skills.length,
+    )
+  }, [skills])
 
-        return (
-          <TimelineSection
-            key="timeline"
-            timeline={timeline}
-            activeEra={activeEra}
-            setActiveEra={setActiveEra}
-            activeTimeline={activeTimeline}
-          />
-        )
+  const maxSkillCount = Math.max(
+    ...skillGroups.map((group) => group.skills.length),
+    1,
+  )
 
-      case 'projects':
-        if (!settings?.showProjects || projects.length === 0) {
-          return null
-        }
+  const publicProjects = projects.filter(
+    (project) => project.visibility === 'public',
+  )
 
-        return (
-          <ProjectsSection
-            key="projects"
-            projects={filteredProjects}
-            projectFilter={projectFilter}
-            setProjectFilter={setProjectFilter}
-          />
-        )
+  const limitedProjects = projects.filter(
+    (project) => project.visibility === 'limited',
+  )
 
-      case 'experience':
-        if (!settings?.showExperience || experiences.length === 0) {
-          return null
-        }
-
-        return (
-          <ExperienceSection
-            key="experience"
-            experiences={experiences}
-          />
-        )
-
-      case 'skills':
-        if (!settings?.showSkills || skills.length === 0) {
-          return null
-        }
-
-        return (
-          <SkillsSection
-            key="skills"
-            groupedSkills={groupedSkills}
-          />
-        )
-
-      case 'engineering':
-        if (!settings?.showEngineering || engineering.length === 0) {
-          return null
-        }
-
-        return (
-          <EngineeringSection
-            key="engineering"
-            engineering={engineering}
-          />
-        )
-
-      case 'achievements':
-        if (
-          !settings?.showAchievements ||
-          achievements.length === 0
-        ) {
-          return null
-        }
-
-        return (
-          <AchievementsSection
-            key="achievements"
-            achievements={achievements}
-          />
-        )
-
-      default:
-        return null
-    }
-  }
+  const archiveProjects = projects.filter(
+    (project) => project.visibility === 'archive',
+  )
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b-4 border-zinc-800 bg-zinc-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          <div>
-            <p className="font-mono text-lg font-bold uppercase tracking-widest">
-              JMM.EXE
-            </p>
+    <>
+      <GameBackground
+        asset={settings?.backgroundMedia?.asset}
+      />
 
-            <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
-              Player Profile
-            </p>
-          </div>
+      <main className="relative z-10 min-h-screen text-slate-900">
+        {/* HERO */}
+        <section className="mx-auto flex min-h-[92vh] w-full max-w-3xl flex-col items-center px-4 pb-7 pt-5 text-center sm:px-6">
+          {/* COMPUTER SETUP */}
+          <DesktopComputer
+            photo={profile?.mainPhoto}
+          />
 
-          <div className="hidden gap-5 text-sm text-zinc-400 md:flex">
-            <a href="#overview" className="hover:text-white">
-              Overview
-            </a>
-
-            {settings?.showProjects && projects.length > 0 && (
-              <a href="#projects" className="hover:text-white">
-                Projects
-              </a>
-            )}
-
-            {settings?.showSkills && skills.length > 0 && (
-              <a href="#skills" className="hover:text-white">
-                Skills
-              </a>
-            )}
-
-            <a href="#contact" className="hover:text-white">
-              Contact
-            </a>
-
-            {profile?.githubUrl && (
-              <a
-                href={profile.githubUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-white"
-              >
-                GitHub
-              </a>
+          {/* Avatar */}
+          <div className="-mt-10 flex h-36 w-36 items-end justify-center overflow-hidden border-[5px] border-slate-900 bg-yellow-300 shadow-[5px_5px_0_#0f172a] sm:h-40 sm:w-40">
+            {profile?.pixelAvatar?.asset?.url ? (
+              <img
+                src={profile.pixelAvatar.asset.url}
+                alt="Pixel RPG avatar"
+                className="h-[96%] w-[96%] object-contain object-bottom"
+                style={{
+                  imageRendering: 'pixelated',
+                }}
+              />
+            ) : (
+              <PixelAvatarPlaceholder />
             )}
           </div>
-        </div>
-      </nav>
 
-      {/* Hero */}
-      <section
-        id="overview"
-        className="mx-auto grid max-w-7xl gap-12 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-20"
-      >
-        <div className="flex flex-col justify-center">
-          <div className="inline-block self-start border-2 border-zinc-700 px-3 py-1 font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">
-            Current Quest:{' '}
-            {settings?.currentQuest ?? 'Build, Ship, Improve'}
-          </div>
-
-          <p className="mt-8 font-mono text-sm uppercase tracking-[0.3em] text-zinc-500">
-            Character Select
+          <p className="mt-5 font-mono text-sm font-black uppercase tracking-[0.25em] text-blue-700">
+            🎮 Player One
           </p>
 
-          <h1 className="mt-3 text-4xl font-black uppercase leading-tight sm:text-6xl">
-            {profile?.fullName ?? 'John Melquizedek Mayoral'}
-            {profile?.credential && (
-              <>
-                <span className="text-zinc-500">, </span>
-                {profile.credential}
-              </>
-            )}
+          {/* SAME COLOR: NAME + ECT */}
+          <h1 className="mt-3 text-3xl font-black uppercase leading-tight sm:text-5xl">
+            {profile?.fullName ??
+              'John Melquizedek Mayoral'}
+            {profile?.credential
+              ? `, ${profile.credential}`
+              : ''}
           </h1>
 
           {titles.length > 0 && (
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-300">
-              {titles.join(' | ')}
+            <p className="mt-4 max-w-2xl text-base font-bold leading-7 text-slate-700 sm:text-lg">
+              {titles.join(' • ')}
             </p>
           )}
 
-          {profile?.heroTagline && (
-            <p className="mt-7 max-w-3xl text-lg leading-8 text-zinc-400">
-              {profile.heroTagline}
+          {/* Current Quest */}
+          <div className="mt-6 w-full max-w-xl rounded-2xl border-[3px] border-slate-900 bg-yellow-300 px-5 py-4 shadow-[4px_4px_0_#0f172a]">
+            <p className="font-mono text-xs font-black uppercase tracking-[0.2em]">
+              🗺 Current Quest
             </p>
-          )}
 
-          {profile?.bio && (
-            <p className="mt-5 max-w-3xl leading-8 text-zinc-500">
-              {profile.bio}
+            <p className="mt-2 text-lg font-black sm:text-xl">
+              {settings?.currentQuest ??
+                'Build • Ship • Improve'}
             </p>
-          )}
+          </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <StatCard
-              label="Base"
-              value={profile?.location ?? 'Cebu, Philippines'}
+          {/* Stats */}
+          <div className="mt-5 grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
+            <MiniStat
+              emoji="🕹"
+              label="Years"
+              value={`${timeline.length}`}
             />
 
-            <StatCard
-              label="Current Status"
-              value={
-                settings?.availabilityStatus ??
-                'Building and improving'
-              }
+            <MiniStat
+              emoji="⚔️"
+              label="Quests"
+              value={`${projects.length}`}
+            />
+
+            <MiniStat
+              emoji="✨"
+              label="Skills"
+              value={`${skills.length}`}
+            />
+
+            <MiniStat
+              emoji="🏆"
+              label="Awards"
+              value={`${achievements.length}`}
             />
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-4">
-            {projects.length > 0 && (
-              <a
-                href="#projects"
-                className="border-4 border-white bg-white px-5 py-3 font-mono text-sm uppercase tracking-widest text-black transition hover:-translate-y-0.5"
-              >
-                View Projects
-              </a>
+          {/* Actions only */}
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {profile?.resume?.asset?.url && (
+              <ActionLink
+                href={profile.resume.asset.url}
+                label="Resume"
+                icon="⬇"
+              />
             )}
 
-            {profile?.resume?.asset?.url && (
-              <a
-                href={profile.resume.asset.url}
-                target="_blank"
-                rel="noreferrer"
-                className="border-4 border-zinc-700 px-5 py-3 font-mono text-sm uppercase tracking-widest transition hover:border-zinc-400"
-              >
-                Resume
-              </a>
+            {profile?.githubUrl && (
+              <ActionLink
+                href={profile.githubUrl}
+                label="GitHub"
+                icon="↗"
+              />
             )}
 
             <a
               href="#contact"
-              className="border-4 border-zinc-700 px-5 py-3 font-mono text-sm uppercase tracking-widest transition hover:border-zinc-400"
+              className={clickableClass}
             >
-              Contact
+              ↘ Contact
             </a>
           </div>
-        </div>
+        </section>
 
-        {/* Character artwork */}
-        <HeroArtwork profile={profile} />
-      </section>
+        {/* PLAYER STATS */}
+        {settings?.showSkills &&
+          skillGroups.length > 0 && (
+            <GameSection title="⭐ Player Stats">
+              <div className="mx-auto max-w-xl space-y-4">
+                {skillGroups.map((group) => {
+                  const value = group.skills.length
 
-      {/* CMS-controlled section order */}
-      {sectionOrder.map(renderSection)}
+                  const width = Math.max(
+                    16,
+                    (value / maxSkillCount) * 100,
+                  )
 
-      {/* Contact */}
-      <section
-        id="contact"
-        className="border-t-4 border-zinc-800 px-4 py-16 sm:px-6"
-      >
-        <div className="mx-auto max-w-7xl">
-          <SectionHeading
-            eyebrow="CONTACT"
-            title="Ready to Connect"
-          />
+                  return (
+                    <div key={group.category}>
+                      <div className="mb-2 flex items-end justify-between gap-3 text-left">
+                        <span className="font-mono text-sm font-black uppercase tracking-wide">
+                          {skillLabels[
+                            group.category
+                          ] ?? group.category}
+                        </span>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <Panel>
-              <p className="leading-8 text-zinc-400">
-                For development work, AI-assisted workflows,
-                technical collaboration, or related opportunities,
-                use any of the channels listed here.
-              </p>
-            </Panel>
+                        <span className="font-mono text-sm font-black text-violet-700">
+                          {value}
+                        </span>
+                      </div>
 
-            <Panel>
-              <div className="space-y-5">
-                {profile?.email && (
-                  <ContactItem
-                    label="Email"
-                    value={profile.email}
-                    href={`mailto:${profile.email}`}
+                      <div className="h-6 overflow-hidden rounded-full border-[3px] border-slate-900 bg-white">
+                        <div
+                          className="h-full bg-gradient-to-r from-lime-400 via-yellow-300 to-orange-400"
+                          style={{
+                            width: `${width}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </GameSection>
+          )}
+
+        {/* TIMELINE */}
+        {settings?.showTimeline &&
+          timeline.length > 0 && (
+            <GameSection title="🧭 Journey Log">
+              <div className="mx-auto max-w-xl">
+                {timeline.map((item, index) => (
+                  <TimelineRow
+                    key={item._id}
+                    item={item}
+                    last={
+                      index === timeline.length - 1
+                    }
                   />
-                )}
+                ))}
+              </div>
+            </GameSection>
+          )}
 
-                {profile?.phone && (
-                  <ContactItem
-                    label="Phone"
-                    value={profile.phone}
-                    href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`}
+        {/* QUESTS */}
+        {settings?.showProjects &&
+          projects.length > 0 && (
+            <GameSection title="⚔️ Quest Log">
+              <div className="mx-auto max-w-xl space-y-4">
+                {publicProjects.map((project) => (
+                  <QuestCard
+                    key={project._id}
+                    project={project}
+                    onOpen={() =>
+                      setSelectedProject(project)
+                    }
                   />
-                )}
+                ))}
+              </div>
 
-                {profile?.githubUrl && (
-                  <ContactItem
-                    label="GitHub"
-                    value="GitHub Profile"
-                    href={profile.githubUrl}
-                  />
-                )}
+              {limitedProjects.length > 0 && (
+                <CompactProjectGroup
+                  emoji="🔒"
+                  title="Restricted Missions"
+                  projects={limitedProjects}
+                  onOpen={setSelectedProject}
+                />
+              )}
 
-                {profile?.linkedinUrl && (
-                  <ContactItem
-                    label="LinkedIn"
-                    value="LinkedIn Profile"
-                    href={profile.linkedinUrl}
-                  />
-                )}
+              {archiveProjects.length > 0 && (
+                <CompactProjectGroup
+                  emoji="🗃️"
+                  title="Legacy Archive"
+                  projects={archiveProjects}
+                  onOpen={setSelectedProject}
+                />
+              )}
+            </GameSection>
+          )}
 
-                {profile?.location && (
-                  <div>
-                    <p className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-500">
-                      Location
-                    </p>
+        {/* SKILLS */}
+        {settings?.showSkills &&
+          skills.length > 0 && (
+            <GameSection title="🎒 Skill Inventory">
+              <div className="mx-auto max-w-xl space-y-6">
+                {skillGroups.map((group) => (
+                  <div key={group.category}>
+                    <h3 className="font-mono text-sm font-black uppercase tracking-[0.15em] text-violet-700">
+                      {skillLabels[
+                        group.category
+                      ] ?? group.category}
+                    </h3>
 
-                    <p className="mt-1 text-zinc-200">
-                      {profile.location}
-                    </p>
+                    <div className="mt-3 flex flex-wrap justify-center gap-2">
+                      {group.skills.map(
+                        (skill) => (
+                          <span
+                            key={skill._id}
+                            className="rounded-lg border-2 border-slate-900 bg-white px-3 py-2 text-sm font-bold shadow-[2px_2px_0_#0f172a]"
+                          >
+                            {skill.name}
+                          </span>
+                        ),
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+            </GameSection>
+          )}
+
+        {/* EXPERIENCE */}
+        {settings?.showExperience &&
+          experiences.length > 0 && (
+            <GameSection title="📖 Quest History">
+              <div className="mx-auto max-w-xl space-y-4">
+                {experiences.map((item) => (
+                  <SimpleCard key={item._id}>
+                    <p className="font-mono text-xs font-black uppercase tracking-widest text-blue-700">
+                      🧩 {item.experienceType}
+                    </p>
+
+                    <h3 className="mt-2 text-xl font-black">
+                      {item.role}
+                    </h3>
+
+                    {item.organization && (
+                      <p className="mt-1 text-base font-semibold text-slate-500">
+                        {item.organization}
+                      </p>
+                    )}
+
+                    {item.summary && (
+                      <p className="mt-3 text-base leading-7 text-slate-600">
+                        {item.summary}
+                      </p>
+                    )}
+                  </SimpleCard>
+                ))}
+              </div>
+            </GameSection>
+          )}
+
+        {/* ENGINEERING */}
+        {settings?.showEngineering &&
+          engineering.length > 0 && (
+            <GameSection title="⚡ Engineering Missions">
+              <div className="mx-auto max-w-xl space-y-4">
+                {engineering.map((item) => (
+                  <SimpleCard key={item._id}>
+                    <p className="font-mono text-sm font-black text-violet-600">
+                      🗓 {item.yearLabel}
+                    </p>
+
+                    <h3 className="mt-2 text-xl font-black">
+                      {item.title}
+                    </h3>
+
+                    {item.summary && (
+                      <p className="mt-3 text-base leading-7 text-slate-600">
+                        {item.summary}
+                      </p>
+                    )}
+                  </SimpleCard>
+                ))}
+              </div>
+            </GameSection>
+          )}
+
+        {/* ACHIEVEMENTS */}
+        {settings?.showAchievements &&
+          achievements.length > 0 && (
+            <GameSection title="🏆 Achievements">
+              <div className="mx-auto max-w-xl space-y-3">
+                {achievements.map(
+                  (achievement) => (
+                    <div
+                      key={achievement._id}
+                      className="flex items-start gap-4 rounded-2xl border-[3px] border-slate-900 bg-yellow-100 p-4 text-left shadow-[3px_3px_0_#0f172a]"
+                    >
+                      <div className="text-4xl">
+                        🏆
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-black">
+                          {achievement.title}
+                        </h3>
+
+                        {achievement.yearLabel && (
+                          <p className="mt-1 font-mono text-xs font-black text-violet-600">
+                            {
+                              achievement.yearLabel
+                            }
+                          </p>
+                        )}
+
+                        {achievement.description && (
+                          <p className="mt-2 text-base leading-7 text-slate-600">
+                            {
+                              achievement.description
+                            }
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ),
                 )}
               </div>
-            </Panel>
-          </div>
-        </div>
-      </section>
+            </GameSection>
+          )}
 
-      <footer className="border-t-4 border-zinc-800 px-4 py-8 sm:px-6">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 text-xs uppercase tracking-[0.2em] text-zinc-500 sm:flex-row sm:justify-between">
-          <span>
-            {profile?.fullName ?? 'John Melquizedek Mayoral'}
+        {/* CONTACT */}
+        <GameSection title="💬 Contact">
+          <div
+            id="contact"
+            className="mx-auto max-w-xl rounded-[22px] border-[4px] border-slate-900 bg-violet-500 p-6 text-white shadow-[5px_5px_0_#0f172a]"
+          >
+            <p className="text-xl font-black">
+              🎮 Ready Player Two?
+            </p>
+
+            {profile?.location && (
+              <p className="mt-3 text-base font-semibold">
+                📍 {profile.location}
+              </p>
+            )}
+
+            <div className="mt-5 flex flex-col items-center gap-3">
+              {profile?.email && (
+                <ActionLink
+                  href={`mailto:${profile.email}`}
+                  label={profile.email}
+                  icon="↗"
+                  external={false}
+                />
+              )}
+
+              {profile?.phone && (
+                <ActionLink
+                  href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`}
+                  label={profile.phone}
+                  icon="↗"
+                  external={false}
+                />
+              )}
+
+              {profile?.githubUrl && (
+                <ActionLink
+                  href={profile.githubUrl}
+                  label="GitHub"
+                  icon="↗"
+                />
+              )}
+
+              {profile?.linkedinUrl && (
+                <ActionLink
+                  href={profile.linkedinUrl}
+                  label="LinkedIn"
+                  icon="↗"
+                />
+              )}
+            </div>
+          </div>
+        </GameSection>
+
+        <footer className="border-t border-sky-200/80 px-4 py-8 text-center">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-600">
+            🎮{' '}
+            {profile?.fullName ??
+              'John Melquizedek Mayoral'}
             {profile?.credential
               ? `, ${profile.credential}`
               : ''}
-          </span>
+          </p>
 
-          <span>
+          <p className="mt-2 text-sm text-slate-500">
             Next.js • Sanity • Vercel
-          </span>
-        </div>
-      </footer>
-    </main>
+          </p>
+        </footer>
+      </main>
+
+      {selectedProject && (
+        <ProjectModal
+          project={selectedProject}
+          onClose={() =>
+            setSelectedProject(null)
+          }
+        />
+      )}
+    </>
   )
 }
 
-function HeroArtwork({
-  profile,
+/* ---------------- COMPUTER HERO ---------------- */
+
+function DesktopComputer({
+  photo,
 }: {
-  profile?: Profile
+  photo?: Profile['mainPhoto']
 }) {
-  const main = profile?.mainPhoto
-  const side = profile?.sidePhotos ?? []
-
   return (
-    <div className="relative min-h-[560px] overflow-hidden border-4 border-zinc-800 bg-zinc-900 p-4 shadow-[8px_8px_0px_#18181b]">
-      <div className="absolute left-4 top-4 z-20 border-2 border-zinc-700 bg-zinc-950/90 px-3 py-2 font-mono text-xs uppercase tracking-widest text-zinc-500">
-        Character Lineup
-      </div>
-
-      {main?.asset?.url ? (
-        <img
-          src={main.asset.url}
-          alt={main.alt ?? 'Main portrait'}
-          className="absolute bottom-0 left-0 z-10 h-[88%] w-[68%] object-cover object-top"
-        />
-      ) : (
-        <div className="absolute bottom-4 left-4 flex h-[82%] w-[62%] items-center justify-center border-4 border-zinc-700 bg-zinc-950 text-center text-sm uppercase tracking-widest text-zinc-600">
-          Main portrait
-        </div>
-      )}
-
-      <div className="absolute bottom-5 right-4 z-20 flex w-[43%] flex-col gap-3">
-        {side.slice(0, 3).map((photo, index) => (
-          <div
-            key={photo._key ?? index}
-            className="overflow-hidden border-4 border-zinc-700 bg-zinc-950 shadow-[4px_4px_0px_#18181b]"
-          >
-            {photo.asset?.url ? (
+    <div className="relative w-full max-w-2xl pb-14">
+      {/* Monitor */}
+      <div className="relative mx-auto w-[92%] rounded-[18px] border-[6px] border-slate-900 bg-slate-700 p-3 shadow-[8px_8px_0_#0f172a] sm:w-[88%]">
+        {/* Screen */}
+        <div className="relative aspect-[16/9] overflow-hidden border-[4px] border-slate-950 bg-gradient-to-br from-blue-500 via-violet-500 to-fuchsia-400">
+          {photo?.asset?.url ? (
+            <>
               <img
                 src={photo.asset.url}
-                alt={photo.alt ?? `Character version ${index + 1}`}
-                className="aspect-[2/1] w-full object-cover object-top"
+                alt={
+                  photo.alt ??
+                  'Main loading screen'
+                }
+                className="h-full w-full object-cover object-top"
               />
-            ) : (
-              <div className="flex aspect-[2/1] items-center justify-center text-xs text-zinc-600">
-                Character {index + 1}
-              </div>
-            )}
 
-            {photo.attire && (
-              <div className="border-t-2 border-zinc-800 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500">
-                {photo.attire}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+            </>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center p-5 text-white">
+              <p className="text-5xl sm:text-7xl">
+                🎮
+              </p>
+
+              <p className="mt-3 font-mono text-sm font-black uppercase tracking-[0.18em]">
+                Loading Player...
+              </p>
+
+              <div className="mt-4 h-4 w-[65%] overflow-hidden border-2 border-white bg-slate-800">
+                <div className="h-full w-[74%] animate-pulse bg-lime-400" />
               </div>
+            </div>
+          )}
+
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-xs font-black uppercase tracking-wider text-white drop-shadow-md">
+            🎮 Loading Character...
+          </div>
+        </div>
+
+        {/* monitor light */}
+        <div className="mx-auto mt-2 h-2 w-2 rounded-full bg-lime-400" />
+      </div>
+
+      {/* Monitor stand */}
+      <div className="mx-auto h-8 w-7 bg-slate-800" />
+      <div className="mx-auto h-3 w-28 border-[3px] border-slate-900 bg-slate-500" />
+
+      {/* Desk area */}
+      <div className="relative mx-auto mt-3 h-12 w-[94%]">
+        {/* CPU */}
+        <div className="absolute bottom-0 left-[2%] h-24 w-14 rounded-md border-[4px] border-slate-900 bg-slate-700 shadow-[3px_3px_0_#0f172a] sm:h-28 sm:w-16">
+          <div className="mx-auto mt-3 h-2 w-7 bg-slate-950" />
+          <div className="mx-auto mt-3 h-3 w-3 rounded-full bg-lime-400" />
+          <div className="mx-auto mt-3 grid w-8 grid-cols-3 gap-1 opacity-50">
+            {Array.from({length: 9}).map(
+              (_, index) => (
+                <div
+                  key={index}
+                  className="h-1 w-1 bg-slate-950"
+                />
+              ),
             )}
+          </div>
+        </div>
+
+        {/* Keyboard */}
+        <div className="absolute bottom-0 left-1/2 h-8 w-[52%] -translate-x-1/2 skew-x-[-8deg] rounded-md border-[3px] border-slate-900 bg-slate-300 shadow-[3px_3px_0_#0f172a]">
+          <div className="grid h-full grid-cols-8 gap-[2px] p-1">
+            {Array.from({length: 24}).map(
+              (_, index) => (
+                <div
+                  key={index}
+                  className="rounded-sm bg-slate-600"
+                />
+              ),
+            )}
+          </div>
+        </div>
+
+        {/* Mouse */}
+        <div className="absolute bottom-0 right-[8%] h-8 w-5 rounded-full border-[3px] border-slate-900 bg-slate-300 shadow-[2px_2px_0_#0f172a]">
+          <div className="mx-auto mt-1 h-2 w-[2px] bg-slate-800" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ---------------- BACKGROUND ---------------- */
+
+function GameBackground({
+  asset,
+}: {
+  asset?: Asset
+}) {
+  const isVideo =
+    asset?.mimeType?.startsWith('video/')
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {asset?.url ? (
+        isVideo ? (
+          <video
+            src={asset.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <img
+            src={asset.url}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{
+              imageRendering: 'pixelated',
+            }}
+          />
+        )
+      ) : (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-b from-sky-400 via-cyan-200 to-emerald-100" />
+
+          <div
+            className="absolute inset-0 opacity-[0.09]"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right,#0f172a 1px,transparent 1px),linear-gradient(to bottom,#0f172a 1px,transparent 1px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
+
+          <div className="absolute left-[5%] top-[9%] animate-pulse">
+            <PixelCloud />
+          </div>
+
+          <div className="absolute right-[4%] top-[20%] scale-75 animate-pulse sm:scale-100">
+            <PixelCloud />
+          </div>
+
+          <div className="absolute left-[15%] top-[32%] animate-pulse text-2xl opacity-50">
+            ✨
+          </div>
+
+          <div className="absolute right-[14%] top-[45%] animate-pulse text-3xl opacity-40">
+            ⭐
+          </div>
+
+          <div className="absolute bottom-[14%] left-[8%] text-3xl opacity-40">
+            🌳
+          </div>
+
+          <div className="absolute bottom-[12%] right-[8%] text-3xl opacity-40">
+            🍄
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-lime-400 to-emerald-700 opacity-25" />
+        </>
+      )}
+
+      <div className="absolute inset-0 bg-white/65 backdrop-blur-[1px]" />
+    </div>
+  )
+}
+
+function PixelCloud() {
+  return (
+    <div className="grid grid-cols-6 gap-0 opacity-45">
+      {[
+        0, 0, 1, 1, 0, 0,
+        0, 1, 1, 1, 1, 0,
+        1, 1, 1, 1, 1, 1,
+      ].map((filled, index) => (
+        <div
+          key={index}
+          className={`h-4 w-4 sm:h-5 sm:w-5 ${
+            filled
+              ? 'bg-white'
+              : 'bg-transparent'
+          }`}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ---------------- AVATAR ---------------- */
+
+function PixelAvatarPlaceholder() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className="h-[96%] w-[96%]"
+      shapeRendering="crispEdges"
+      aria-label="Pixel RPG character placeholder"
+      preserveAspectRatio="xMidYMax meet"
+    >
+      <rect width="16" height="16" fill="#fde047" />
+
+      <rect
+        x="4"
+        y="14"
+        width="8"
+        height="1"
+        fill="#a16207"
+      />
+
+      <rect
+        x="5"
+        y="2"
+        width="6"
+        height="1"
+        fill="#172554"
+      />
+
+      <rect
+        x="4"
+        y="3"
+        width="8"
+        height="2"
+        fill="#172554"
+      />
+
+      <rect
+        x="5"
+        y="5"
+        width="6"
+        height="4"
+        fill="#fdba74"
+      />
+
+      <rect
+        x="6"
+        y="6"
+        width="1"
+        height="1"
+        fill="#0f172a"
+      />
+
+      <rect
+        x="9"
+        y="6"
+        width="1"
+        height="1"
+        fill="#0f172a"
+      />
+
+      <rect
+        x="4"
+        y="9"
+        width="8"
+        height="3"
+        fill="#7c3aed"
+      />
+
+      <rect
+        x="3"
+        y="10"
+        width="1"
+        height="3"
+        fill="#fdba74"
+      />
+
+      <rect
+        x="12"
+        y="10"
+        width="1"
+        height="3"
+        fill="#fdba74"
+      />
+
+      <rect
+        x="5"
+        y="12"
+        width="2"
+        height="3"
+        fill="#1e3a8a"
+      />
+
+      <rect
+        x="9"
+        y="12"
+        width="2"
+        height="3"
+        fill="#1e3a8a"
+      />
+
+      <rect
+        x="13"
+        y="7"
+        width="1"
+        height="6"
+        fill="#64748b"
+      />
+
+      <rect
+        x="12"
+        y="9"
+        width="3"
+        height="1"
+        fill="#78350f"
+      />
+    </svg>
+  )
+}
+
+/* ---------------- SECTIONS ---------------- */
+
+function GameSection({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="border-t border-slate-300/70 px-4 py-8 text-center sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-3xl">
+        <h2 className="text-2xl font-black uppercase sm:text-3xl">
+          {title}
+        </h2>
+
+        <div className="mt-5">
+          {children}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---------------- STATS ---------------- */
+
+function MiniStat({
+  emoji,
+  label,
+  value,
+}: {
+  emoji: string
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-xl border-[3px] border-slate-900 bg-white/90 p-3 shadow-[3px_3px_0_#0f172a]">
+      <div className="text-xl">
+        {emoji}
+      </div>
+
+      <p className="mt-1 font-mono text-xs font-black uppercase tracking-wide text-slate-600">
+        {label}
+      </p>
+
+      <p className="mt-1 text-2xl font-black text-violet-600">
+        {value}
+      </p>
+    </div>
+  )
+}
+
+/* ---------------- TIMELINE ---------------- */
+
+function TimelineRow({
+  item,
+  last,
+}: {
+  item: TimelineItem
+  last: boolean
+}) {
+  return (
+    <div className="relative flex gap-4 text-left">
+      <div className="flex flex-col items-center">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[3px] border-slate-900 bg-yellow-300 text-base font-black">
+          ⭐
+        </div>
+
+        {!last && (
+          <div className="min-h-24 w-[3px] flex-1 bg-slate-400/60" />
+        )}
+      </div>
+
+      <div className="pb-6">
+        <p className="font-mono text-sm font-black uppercase tracking-wide text-violet-600">
+          {item.yearLabel}
+        </p>
+
+        <h3 className="mt-1 text-xl font-black">
+          {item.title}
+        </h3>
+
+        {item.role && (
+          <p className="mt-1 text-base font-bold text-blue-600">
+            🎯 {item.role}
+          </p>
+        )}
+
+        {item.summary && (
+          <p className="mt-2 text-base leading-7 text-slate-700">
+            {item.summary}
+          </p>
+        )}
+
+        {item.unlocked &&
+          item.unlocked.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {item.unlocked.map((value) => (
+                <SmallTag key={value}>
+                  ✨ {value}
+                </SmallTag>
+              ))}
+            </div>
+          )}
+      </div>
+    </div>
+  )
+}
+
+/* ---------------- QUESTS ---------------- */
+
+function QuestCard({
+  project,
+  onOpen,
+}: {
+  project: Project
+  onOpen: () => void
+}) {
+  return (
+    <article className="rounded-[18px] border-[3px] border-slate-900 bg-white/95 p-5 text-left shadow-[4px_4px_0_#0f172a]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-xs font-black uppercase tracking-wide text-blue-600">
+            ⚔ Quest • {project.yearLabel}
+          </p>
+
+          <h3 className="mt-2 text-xl font-black">
+            {project.title}
+          </h3>
+        </div>
+
+        {project.status && (
+          <span className="rounded-lg border-2 border-slate-900 bg-lime-300 px-2 py-1 font-mono text-xs font-black">
+            {statusLabels[project.status] ??
+              project.status}
+          </span>
+        )}
+      </div>
+
+      {project.shortDescription && (
+        <p className="mt-3 text-base leading-7 text-slate-700">
+          {project.shortDescription}
+        </p>
+      )}
+
+      {project.technologies &&
+        project.technologies.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {project.technologies.map(
+              (technology) => (
+                <SmallTag key={technology}>
+                  {technology}
+                </SmallTag>
+              ),
+            )}
+          </div>
+        )}
+
+      <button
+        type="button"
+        onClick={onOpen}
+        className={`mt-5 ${clickableClass}`}
+      >
+        ↗ Open Quest
+      </button>
+    </article>
+  )
+}
+
+function CompactProjectGroup({
+  emoji,
+  title,
+  projects,
+  onOpen,
+}: {
+  emoji: string
+  title: string
+  projects: Project[]
+  onOpen: (project: Project) => void
+}) {
+  return (
+    <div className="mx-auto mt-7 max-w-xl">
+      <p className="font-mono text-sm font-black uppercase tracking-wide text-slate-600">
+        {emoji} {title}
+      </p>
+
+      <div className="mt-3 divide-y divide-slate-300 rounded-2xl border-[3px] border-slate-900 bg-white/90 px-5 shadow-[3px_3px_0_#0f172a]">
+        {projects.map((project) => (
+          <div
+            key={project._id}
+            className="flex items-center justify-between gap-4 py-4 text-left"
+          >
+            <div>
+              <h3 className="font-black">
+                {project.title}
+              </h3>
+
+              <p className="mt-1 font-mono text-xs font-bold text-violet-600">
+                {project.yearLabel}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onOpen(project)}
+              className={`${clickableClass} flex h-11 w-11 items-center justify-center px-0 py-0 text-lg no-underline`}
+              aria-label={`Open ${project.title}`}
+            >
+              🔍
+            </button>
           </div>
         ))}
       </div>
@@ -588,498 +1218,256 @@ function HeroArtwork({
   )
 }
 
-function TimelineSection({
-  timeline,
-  activeEra,
-  setActiveEra,
-  activeTimeline,
+/* ---------------- MODAL ---------------- */
+
+function ProjectModal({
+  project,
+  onClose,
 }: {
-  timeline: TimelineItem[]
-  activeEra: number
-  setActiveEra: (index: number) => void
-  activeTimeline?: TimelineItem
+  project: Project
+  onClose: () => void
 }) {
+  const proofs = project.proofs ?? []
+
   return (
-    <section
-      id="timeline"
-      className="border-t-4 border-zinc-800 px-4 py-16 sm:px-6"
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-sm sm:p-5"
+      onMouseDown={onClose}
     >
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="01 / TIMELINE"
-          title="Character Progression"
-        />
+      <div
+        className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[22px] border-[4px] border-slate-900 bg-slate-200 p-5 text-slate-900 shadow-[8px_8px_0_#0f172a] sm:p-7"
+        onMouseDown={(event) =>
+          event.stopPropagation()
+        }
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className={`${clickableClass} sticky top-0 z-20 ml-auto flex h-10 w-10 items-center justify-center px-0 py-0 text-lg no-underline`}
+          aria-label="Close"
+        >
+          ✕
+        </button>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          {timeline.map((item, index) => (
-            <button
-              key={item._id}
-              onClick={() => setActiveEra(index)}
-              className={`border-4 px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] ${
-                activeEra === index
-                  ? 'border-white bg-white text-black'
-                  : 'border-zinc-700 text-zinc-300 hover:border-zinc-400'
-              }`}
-            >
-              {item.yearLabel}
-            </button>
-          ))}
-        </div>
+        <div className="-mt-7 text-center">
+          <p className="font-mono text-sm font-black uppercase tracking-wide text-violet-700">
+            🎮 Quest Details
+          </p>
 
-        {activeTimeline && (
-          <div className="mt-8 grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
-            <Panel>
-              <p className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-500">
-                Active Class
-              </p>
+          <h2 className="mt-2 text-2xl font-black text-slate-900 sm:text-3xl">
+            {project.title}
+          </h2>
 
-              <h3 className="mt-3 text-2xl font-bold uppercase">
-                {activeTimeline.role}
-              </h3>
-
-              <p className="mt-3 text-zinc-500">
-                {activeTimeline.yearLabel}
-              </p>
-            </Panel>
-
-            <Panel>
-              <h3 className="text-2xl font-bold">
-                {activeTimeline.title}
-              </h3>
-
-              <p className="mt-5 leading-8 text-zinc-400">
-                {activeTimeline.summary}
-              </p>
-
-              <div className="mt-7 flex flex-wrap gap-3">
-                {activeTimeline.unlocked?.map((item) => (
-                  <Tag key={item}>{item}</Tag>
-                ))}
-              </div>
-            </Panel>
-          </div>
-        )}
-      </div>
-    </section>
-  )
-}
-
-function ProjectsSection({
-  projects,
-  projectFilter,
-  setProjectFilter,
-}: {
-  projects: Project[]
-  projectFilter: 'public' | 'limited' | 'archive'
-  setProjectFilter: (
-    value: 'public' | 'limited' | 'archive',
-  ) => void
-}) {
-  return (
-    <section
-      id="projects"
-      className="border-t-4 border-zinc-800 bg-zinc-900/30 px-4 py-16 sm:px-6"
-    >
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="02 / PROJECTS"
-          title="Mission Board"
-        />
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          {[
-            ['public', 'Featured / Public'],
-            ['limited', 'Limited / NDA'],
-            ['archive', 'Archive'],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              onClick={() =>
-                setProjectFilter(
-                  value as 'public' | 'limited' | 'archive',
-                )
-              }
-              className={`border-4 px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] ${
-                projectFilter === value
-                  ? 'border-white bg-white text-black'
-                  : 'border-zinc-700 text-zinc-300 hover:border-zinc-400'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project) => (
-            <Panel key={project._id}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">
-                    {project.yearLabel}
-                  </p>
-
-                  <h3 className="mt-3 text-xl font-bold uppercase">
-                    {project.title}
-                  </h3>
-                </div>
-
-                {project.status && (
-                  <span className="border-2 border-zinc-700 px-2 py-1 text-[10px] uppercase tracking-wider text-zinc-400">
-                    {projectStatusLabels[project.status] ??
-                      project.status}
-                  </span>
-                )}
-              </div>
-
-              <p className="mt-5 text-sm leading-7 text-zinc-400">
-                {project.shortDescription}
-              </p>
-
-              {project.ndaNote && (
-                <p className="mt-4 border-l-2 border-zinc-700 pl-4 text-xs leading-6 text-zinc-500">
-                  {project.ndaNote}
-                </p>
-              )}
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                {project.technologies?.map((technology) => (
-                  <Tag key={technology}>
-                    {technology}
-                  </Tag>
-                ))}
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {project.liveUrl && (
-                  <ProjectLink
-                    href={project.liveUrl}
-                    label="Live"
-                  />
-                )}
-
-                {project.githubUrl && (
-                  <ProjectLink
-                    href={project.githubUrl}
-                    label="Source"
-                  />
-                )}
-
-                {project.playStoreUrl && (
-                  <ProjectLink
-                    href={project.playStoreUrl}
-                    label="Play Store"
-                  />
-                )}
-              </div>
-            </Panel>
-          ))}
-
-          {projects.length === 0 && (
-            <p className="text-zinc-500">
-              No projects in this category yet.
+          {project.yearLabel && (
+            <p className="mt-2 font-mono text-sm font-black text-blue-700">
+              🗓 {project.yearLabel}
             </p>
           )}
         </div>
-      </div>
-    </section>
-  )
-}
 
-function SkillsSection({
-  groupedSkills,
-}: {
-  groupedSkills: Record<string, Skill[]>
-}) {
-  return (
-    <section
-      id="skills"
-      className="border-t-4 border-zinc-800 px-4 py-16 sm:px-6"
-    >
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="SKILL TREE"
-          title="Current Build"
-        />
+        {project.shortDescription && (
+          <p className="mt-6 text-center text-base leading-7 text-slate-700">
+            {project.shortDescription}
+          </p>
+        )}
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {Object.entries(groupedSkills).map(
-            ([category, items]) => (
-              <Panel key={category}>
-                <h3 className="font-mono text-sm uppercase tracking-[0.2em] text-zinc-300">
-                  {skillCategoryLabels[category] ?? category}
-                </h3>
+        {project.ndaNote && (
+          <div className="mt-5 rounded-xl border-2 border-slate-900 bg-yellow-100 p-4 text-sm leading-6 text-slate-900">
+            🔒 {project.ndaNote}
+          </div>
+        )}
 
-                <div className="mt-5 flex flex-wrap gap-3">
-                  {items.map((skill) => (
-                    <Tag key={skill._id}>
-                      {skill.name ?? 'Skill'}
-                    </Tag>
-                  ))}
-                </div>
-              </Panel>
-            ),
+        {project.technologies &&
+          project.technologies.length > 0 && (
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              {project.technologies.map(
+                (technology) => (
+                  <SmallTag key={technology}>
+                    🧩 {technology}
+                  </SmallTag>
+                ),
+              )}
+            </div>
+          )}
+
+        {(project.liveUrl ||
+          project.githubUrl ||
+          project.playStoreUrl) && (
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {project.liveUrl && (
+              <ActionLink
+                href={project.liveUrl}
+                label="Live"
+                icon="↗"
+              />
+            )}
+
+            {project.githubUrl && (
+              <ActionLink
+                href={project.githubUrl}
+                label="Source"
+                icon="↗"
+              />
+            )}
+
+            {project.playStoreUrl && (
+              <ActionLink
+                href={project.playStoreUrl}
+                label="Play Store"
+                icon="↗"
+              />
+            )}
+          </div>
+        )}
+
+        <div className="mt-7 border-t border-slate-400 pt-6">
+          <h3 className="text-center text-xl font-black">
+            📂 Proofs & Evidence
+          </h3>
+
+          {proofs.length === 0 ? (
+            <p className="mt-4 text-center text-base text-slate-600">
+              No public evidence has been added yet.
+            </p>
+          ) : (
+            <div className="mt-5 space-y-5">
+              {proofs.map((proof) => (
+                <ProofCard
+                  key={proof._key}
+                  proof={proof}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>
-    </section>
-  )
-}
-
-function ExperienceSection({
-  experiences,
-}: {
-  experiences: Experience[]
-}) {
-  return (
-    <section className="border-t-4 border-zinc-800 px-4 py-16 sm:px-6">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="EXPERIENCE"
-          title="Quest Log"
-        />
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {experiences.map((experience) => (
-            <Panel key={experience._id}>
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                {experience.experienceType}
-              </p>
-
-              <h3 className="mt-3 text-xl font-bold">
-                {experience.role}
-              </h3>
-
-              {experience.organization && (
-                <p className="mt-1 text-zinc-500">
-                  {experience.organization}
-                </p>
-              )}
-
-              <p className="mt-4 text-sm leading-7 text-zinc-400">
-                {experience.summary}
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                {experience.technologies?.map((item) => (
-                  <Tag key={item}>{item}</Tag>
-                ))}
-              </div>
-            </Panel>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function EngineeringSection({
-  engineering,
-}: {
-  engineering: EngineeringHighlight[]
-}) {
-  return (
-    <section className="border-t-4 border-zinc-800 px-4 py-16 sm:px-6">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="ENGINEERING"
-          title="Systems & Technical Foundations"
-        />
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {engineering.map((item) => (
-            <Panel key={item._id}>
-              <p className="font-mono text-xs text-zinc-500">
-                {item.yearLabel}
-              </p>
-
-              <h3 className="mt-3 text-xl font-bold">
-                {item.title}
-              </h3>
-
-              <p className="mt-4 text-sm leading-7 text-zinc-400">
-                {item.summary}
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                {item.tools?.map((tool) => (
-                  <Tag key={tool}>{tool}</Tag>
-                ))}
-              </div>
-            </Panel>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function AchievementsSection({
-  achievements,
-}: {
-  achievements: Achievement[]
-}) {
-  return (
-    <section className="border-t-4 border-zinc-800 bg-zinc-900/30 px-4 py-16 sm:px-6">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="ACHIEVEMENTS"
-          title="Unlocked Milestones"
-        />
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {achievements.map((achievement) => (
-            <Panel key={achievement._id}>
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-                Achievement Unlocked
-              </p>
-
-              <h3 className="mt-3 text-xl font-bold">
-                {achievement.title}
-              </h3>
-
-              {achievement.yearLabel && (
-                <p className="mt-2 text-sm text-zinc-500">
-                  {achievement.yearLabel}
-                </p>
-              )}
-
-              {achievement.description && (
-                <p className="mt-4 text-sm leading-7 text-zinc-400">
-                  {achievement.description}
-                </p>
-              )}
-
-              {achievement.url && (
-                <a
-                  href={achievement.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-5 inline-block font-mono text-xs uppercase tracking-widest text-zinc-300 underline"
-                >
-                  View
-                </a>
-              )}
-            </Panel>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function SectionHeading({
-  eyebrow,
-  title,
-}: {
-  eyebrow: string
-  title: string
-}) {
-  return (
-    <>
-      <p className="font-mono text-sm uppercase tracking-[0.3em] text-zinc-500">
-        {eyebrow}
-      </p>
-
-      <h2 className="mt-3 text-3xl font-black uppercase sm:text-4xl">
-        {title}
-      </h2>
-    </>
-  )
-}
-
-function Panel({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <div className="border-4 border-zinc-800 bg-zinc-900 p-6 shadow-[6px_6px_0px_#18181b]">
-      {children}
     </div>
   )
 }
 
-function StatCard({
-  label,
-  value,
+function ProofCard({
+  proof,
 }: {
-  label: string
-  value: string
+  proof: ProjectProof
 }) {
   return (
-    <Panel>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">
-        {label}
-      </p>
+    <div className="overflow-hidden rounded-xl border-[3px] border-slate-900 bg-white shadow-[3px_3px_0_#0f172a]">
+      {proof.kind === 'image' &&
+        proof.image?.asset?.url && (
+          <img
+            src={proof.image.asset.url}
+            alt={
+              proof.image.alt ??
+              proof.title ??
+              'Project proof'
+            }
+            className="max-h-[520px] w-full object-contain"
+          />
+        )}
 
-      <p className="mt-2 text-sm text-zinc-200">
-        {value}
-      </p>
-    </Panel>
+      {proof.kind === 'video' &&
+        proof.video?.asset?.url && (
+          <video
+            src={proof.video.asset.url}
+            controls
+            playsInline
+            preload="metadata"
+            className="max-h-[520px] w-full bg-black"
+          />
+        )}
+
+      <div className="p-4">
+        {proof.title && (
+          <h4 className="text-lg font-black">
+            {proof.kind === 'image' && '🖼 '}
+            {proof.kind === 'video' && '🎞 '}
+            {proof.kind === 'file' && '📁 '}
+            {proof.kind === 'link' && '🔗 '}
+            {proof.title}
+          </h4>
+        )}
+
+        {proof.caption && (
+          <p className="mt-2 text-base leading-7 text-slate-600">
+            {proof.caption}
+          </p>
+        )}
+
+        {proof.kind === 'file' &&
+          proof.file?.asset?.url && (
+            <div className="mt-3">
+              <ActionLink
+                href={proof.file.asset.url}
+                label="Download / Open File"
+                icon="⬇"
+              />
+            </div>
+          )}
+
+        {proof.kind === 'link' &&
+          proof.url && (
+            <div className="mt-3">
+              <ActionLink
+                href={proof.url}
+                label="Open Link"
+                icon="↗"
+              />
+            </div>
+          )}
+      </div>
+    </div>
   )
 }
 
-function Tag({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <span className="border-2 border-zinc-700 px-3 py-2 text-xs text-zinc-300">
-      {children}
-    </span>
-  )
-}
+/* ---------------- COMMON ---------------- */
 
-function ProjectLink({
+function ActionLink({
   href,
   label,
+  icon,
+  external = true,
 }: {
   href: string
   label: string
+  icon: string
+  external?: boolean
 }) {
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="border-2 border-zinc-700 px-3 py-2 font-mono text-xs uppercase tracking-widest hover:border-zinc-400"
+      target={external ? '_blank' : undefined}
+      rel={
+        external
+          ? 'noreferrer'
+          : undefined
+      }
+      className={clickableClass}
     >
-      {label}
+      {icon} {label}
     </a>
   )
 }
 
-function ContactItem({
-  label,
-  value,
-  href,
+function SimpleCard({
+  children,
 }: {
-  label: string
-  value: string
-  href: string
+  children: React.ReactNode
 }) {
   return (
-    <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">
-        {label}
-      </p>
-
-      <a
-        href={href}
-        target={
-          href.startsWith('http') ? '_blank' : undefined
-        }
-        rel={
-          href.startsWith('http')
-            ? 'noreferrer'
-            : undefined
-        }
-        className="mt-1 block text-zinc-200 hover:text-white"
-      >
-        {value}
-      </a>
+    <div className="rounded-2xl border-[3px] border-slate-900 bg-white/90 p-5 shadow-[3px_3px_0_#0f172a]">
+      {children}
     </div>
+  )
+}
+
+function SmallTag({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <span className="rounded-md border-2 border-slate-900 bg-cyan-100 px-2 py-1 text-xs font-bold sm:text-sm">
+      {children}
+    </span>
   )
 }

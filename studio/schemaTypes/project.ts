@@ -1,4 +1,8 @@
-import {defineField, defineType} from 'sanity'
+import {
+  defineArrayMember,
+  defineField,
+  defineType,
+} from 'sanity'
 
 export const project = defineType({
   name: 'project',
@@ -159,6 +163,100 @@ export const project = defineType({
       name: 'sortOrder',
       title: 'Display Order',
       type: 'number',
+    }),
+
+    defineField({
+      name: 'proofs',
+      title: 'Proofs / Project Evidence',
+      description:
+        'Screenshots, videos, files, certificates, documents, or external links related to this project.',
+      type: 'array',
+
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'projectProof',
+          title: 'Proof',
+
+          fields: [
+            defineField({
+              name: 'kind',
+              title: 'Type',
+              type: 'string',
+              options: {
+                list: [
+                  {title: '🖼 Image / GIF', value: 'image'},
+                  {title: '🎞 Video', value: 'video'},
+                  {title: '📁 File / Document', value: 'file'},
+                  {title: '🔗 External Link', value: 'link'},
+                ],
+                layout: 'radio',
+              },
+              validation: (Rule) => Rule.required(),
+            }),
+
+            defineField({
+              name: 'title',
+              title: 'Title',
+              type: 'string',
+            }),
+
+            defineField({
+              name: 'caption',
+              title: 'Caption / Description',
+              type: 'text',
+              rows: 2,
+            }),
+
+            defineField({
+              name: 'image',
+              title: 'Image / GIF',
+              type: 'image',
+              options: {
+                hotspot: true,
+              },
+              hidden: ({parent}) => parent?.kind !== 'image',
+            }),
+
+            defineField({
+              name: 'video',
+              title: 'Video',
+              type: 'file',
+              hidden: ({parent}) => parent?.kind !== 'video',
+            }),
+
+            defineField({
+              name: 'file',
+              title: 'File',
+              type: 'file',
+              hidden: ({parent}) => parent?.kind !== 'file',
+            }),
+
+            defineField({
+              name: 'url',
+              title: 'External URL',
+              type: 'url',
+              hidden: ({parent}) => parent?.kind !== 'link',
+            }),
+          ],
+
+          preview: {
+            select: {
+              title: 'title',
+              subtitle: 'kind',
+              media: 'image',
+            },
+
+            prepare({title, subtitle, media}) {
+              return {
+                title: title || 'Project Proof',
+                subtitle,
+                media,
+              }
+            },
+          },
+        }),
+      ],
     }),
   ],
 

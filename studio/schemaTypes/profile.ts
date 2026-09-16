@@ -122,6 +122,14 @@ export const profile = defineType({
       title: 'Resume',
       type: 'file',
     }),
+
+    defineField({
+      name: 'pixelAvatar',
+      title: 'Pixel / RPG Avatar',
+      type: 'file',
+      description:
+        'Upload a PNG, WebP, or animated GIF. Used as the RPG character on the homepage.',
+    }),
   ],
 
   preview: {
@@ -132,3 +140,4 @@ export const profile = defineType({
     },
   },
 })
+
