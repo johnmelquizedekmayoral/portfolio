@@ -272,7 +272,7 @@ export default function PortfolioClient({
         mobileAsset={settings?.backgroundMediaMobile?.asset}
       />
 
-      <main className="relative z-10 min-h-screen text-slate-900">
+      <main className="game-text-readable relative z-10 min-h-screen text-slate-900">
         {/* HERO */}
         <section className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 pb-7 pt-5 text-center sm:px-6">
           {/* COMPUTER SETUP */}
@@ -797,65 +797,65 @@ function GameBackground({
   const desktopAsset = asset ?? mobileAsset
   const phoneAsset = mobileAsset ?? asset
 
-  const desktopIsVideo =
-    desktopAsset?.mimeType?.startsWith('video/')
-
-  const phoneIsVideo =
-    phoneAsset?.mimeType?.startsWith('video/')
-
   return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-sky-400">
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-sky-200">
       {/* DESKTOP */}
-      {desktopAsset?.url ? (
-        desktopIsVideo ? (
-          <video
-            src={desktopAsset.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 hidden h-full w-full object-cover object-center sm:block"
-          />
-        ) : (
-          <div
-            className="game-background-motion absolute inset-0 hidden bg-cover bg-center bg-no-repeat sm:block"
-            style={{
-              backgroundImage: `url(${desktopAsset.url})`,
-              imageRendering: 'pixelated',
-            }}
-          />
-        )
-      ) : (
-        <div className="absolute inset-0 hidden bg-sky-400 sm:block" />
-      )}
+      <BackgroundLayer
+        asset={desktopAsset}
+        className="hidden sm:block"
+      />
 
       {/* MOBILE */}
-      {phoneAsset?.url ? (
-        phoneIsVideo ? (
-          <video
-            src={phoneAsset.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
-          />
-        ) : (
-          <div
-            className="game-background-motion absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
-            style={{
-              backgroundImage: `url(${phoneAsset.url})`,
-              imageRendering: 'pixelated',
-            }}
-          />
-        )
-      ) : (
-        <div className="absolute inset-0 bg-sky-400 sm:hidden" />
-      )}
+      <BackgroundLayer
+        asset={phoneAsset}
+        className="block sm:hidden"
+      />
 
-      {/* readability overlay */}
-      <div className="absolute inset-0 bg-white/65" />
+      {/* White readability overlay */}
+      <div className="absolute inset-0 bg-white/50" />
     </div>
+  )
+}
+
+function BackgroundLayer({
+  asset,
+  className,
+}: {
+  asset?: Asset
+  className: string
+}) {
+  const isVideo =
+    asset?.mimeType?.startsWith('video/')
+
+  if (!asset?.url) {
+    return (
+      <div
+        className={`absolute inset-0 bg-sky-300 ${className}`}
+      />
+    )
+  }
+
+  if (isVideo) {
+    return (
+      <video
+        src={asset.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className={`game-background-motion absolute -inset-[6%] h-[112%] w-[112%] object-cover object-center ${className}`}
+      />
+    )
+  }
+
+  return (
+    <div
+      className={`game-background-motion absolute -inset-[6%] bg-cover bg-center bg-no-repeat ${className}`}
+      style={{
+        backgroundImage: `url(${asset.url})`,
+        imageRendering: 'pixelated',
+      }}
+    />
   )
 }
 

@@ -12,33 +12,64 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  min-height: 100%;
+  background: #bfe7ff;
+  overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  color: #171717;
   font-family: Arial, Helvetica, sans-serif;
 }
 
 @keyframes gameBackgroundMove {
   0% {
-    background-position: 48% center;
+    transform: translate3d(-1.5%, 0, 0);
   }
 
   50% {
-    background-position: 52% center;
+    transform: translate3d(1.5%, -0.5%, 0);
   }
 
   100% {
-    background-position: 48% center;
+    transform: translate3d(-1.5%, 0, 0);
+  }
+}
+
+@keyframes gameBackgroundMoveMobile {
+  0% {
+    transform: translate3d(-0.7%, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0.7%, -0.3%, 0);
+  }
+
+  100% {
+    transform: translate3d(-0.7%, 0, 0);
   }
 }
 
 .game-background-motion {
-  animation: gameBackgroundMove 18s ease-in-out infinite;
+  animation: gameBackgroundMove 22s ease-in-out infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@media (max-width: 639px) {
+  .game-background-motion {
+    animation-name: gameBackgroundMoveMobile;
+    animation-duration: 26s;
+  }
+}
+
+.game-text-readable {
+  text-shadow:
+    0 1px 2px rgba(255, 255, 255, 0.95),
+    0 -1px 2px rgba(255, 255, 255, 0.95),
+    1px 0 2px rgba(255, 255, 255, 0.95),
+    -1px 0 2px rgba(255, 255, 255, 0.95),
+    0 2px 3px rgba(0, 0, 0, 0.28);
 }
