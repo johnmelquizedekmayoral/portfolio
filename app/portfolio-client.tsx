@@ -186,13 +186,13 @@ const statusLabels: Record<string, string> = {
 }
 
 const clickableClass =
-  'cursor-pointer rounded-lg border-[3px] border-slate-900 bg-slate-200 px-4 py-2 font-semibold text-blue-700 underline decoration-2 underline-offset-2 shadow-[3px_3px_0_#0f172a] transition-all duration-150 hover:-translate-y-1 hover:scale-[1.02] hover:bg-slate-100 active:translate-y-0 active:scale-100'
-
+  'cursor-pointer rounded-lg border-[3px] border-slate-900 bg-violet-200 px-4 py-2 font-semibold text-violet-900 underline decoration-2 underline-offset-2 shadow-[3px_3px_0_#0f172a] transition-all duration-150 hover:-translate-y-1 hover:scale-[1.02] hover:bg-violet-100 active:translate-y-0 active:scale-100'
+  
 const sectionBoxClass =
-  'rounded-[22px] border-[3px] border-slate-900 bg-white/60 p-5 shadow-[4px_4px_0_#0f172a] sm:p-6'
+  'w-fit max-w-full rounded-[22px] border-[3px] border-slate-900 bg-white/50 p-5 shadow-[4px_4px_0_#0f172a] sm:p-6'
 
 const miniBoxClass =
-  'rounded-xl border-2 border-slate-900 bg-white/90 p-4 shadow-[2px_2px_0_#0f172a]'
+  'w-fit max-w-full rounded-xl border-2 border-slate-900 bg-cyan-50/95 p-4 shadow-[2px_2px_0_#0f172a]'
 
 export default function PortfolioClient({
   data,
@@ -467,8 +467,9 @@ export default function PortfolioClient({
             <GameSection title="🎒 Skill Inventory" boxed>
               <div className="mx-auto max-w-xl space-y-6">
                 {skillGroups.map((group) => (
-                  <div key={group.category}
-                  className={miniBoxClass}
+                  <div
+                    key={group.category}
+                    className={`${miniBoxClass} mx-auto text-center`}
                   >
                     <h3 className="font-mono text-sm font-black uppercase tracking-[0.15em] text-violet-700">
                       {skillLabels[group.category] ??
@@ -479,7 +480,7 @@ export default function PortfolioClient({
                       {group.skills.map((skill) => (
                         <span
                           key={skill._id}
-                          className="rounded-lg border-2 border-slate-900 bg-white px-3 py-2 text-sm font-bold shadow-[2px_2px_0_#0f172a]"
+                          className="rounded-lg border-2 border-slate-900 bg-cyan-200 px-3 py-2 text-sm font-bold text-slate-900 shadow-[2px_2px_0_#0f172a]"
                         >
                           {skill.name}
                         </span>
@@ -895,7 +896,7 @@ function GameSection({
     return (
       <section className="px-4 py-7 text-center sm:px-6 sm:py-9">
         <div
-          className={`mx-auto max-w-3xl ${sectionBoxClass}`}
+          className={`mx-auto w-fit max-w-full ${sectionBoxClass}`}
         >
           <h2 className="text-2xl font-black uppercase text-slate-950 sm:text-3xl">
             {title}
@@ -974,7 +975,7 @@ function TimelineRow({
       </div>
 
       <div className="min-w-0 flex-1 pb-4">
-        <div className={miniBoxClass}>
+        <div className={`${miniBoxClass} w-full`}>
           <p className="font-mono text-sm font-black uppercase tracking-wide text-violet-700">
             {item.yearLabel}
           </p>
@@ -1365,7 +1366,7 @@ function SmallTag({
   children: React.ReactNode
 }) {
   return (
-    <span className="rounded-md border-2 border-slate-900 bg-cyan-100 px-2 py-1 text-xs font-bold sm:text-sm">
+    <span className="rounded-md border-2 border-slate-900 bg-cyan-200 px-2 py-1 text-xs font-bold text-slate-900 sm:text-sm">
       {children}
     </span>
   )
