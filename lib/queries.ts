@@ -62,6 +62,24 @@ export const PORTFOLIO_QUERY = defineQuery(`
         originalFilename
       }
     }
+
+    backgroundMedia{
+      asset->{
+        _id,
+        url,
+        mimeType,
+        originalFilename
+      }
+    },
+
+    backgroundMediaMobile{
+      asset->{
+        _id,
+        url,
+        mimeType,
+        originalFilename
+      }
+    }
   },
 
   "timeline": *[_type == "timelineEntry"]

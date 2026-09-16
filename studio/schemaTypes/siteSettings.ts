@@ -110,6 +110,20 @@ export const siteSettings = defineType({
       type: 'text',
       rows: 3,
     }),
+
+    defineField({
+      name: 'backgroundMedia',
+      title: 'Desktop Game Background',
+      type: 'file',
+      description: 'PNG, JPG, GIF, MP4 or WebM.',
+    }),
+
+    defineField({
+      name: 'backgroundMediaMobile',
+      title: 'Mobile Game Background',
+      type: 'file',
+      description: 'Optional phone-optimized version.',
+    }),
   ],
 
   preview: {

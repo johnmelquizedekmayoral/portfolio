@@ -52,6 +52,10 @@ type Settings = {
   backgroundMedia?: {
     asset?: Asset
   }
+
+  backgroundMediaMobile?: {
+    asset?: Asset
+  }
 }
 
 type TimelineItem = {
@@ -265,6 +269,7 @@ export default function PortfolioClient({
     <>
       <GameBackground
         asset={settings?.backgroundMedia?.asset}
+        mobileAsset={settings?.backgroundMediaMobile?.asset}
       />
 
       <main className="relative z-10 min-h-screen text-slate-900">
@@ -786,76 +791,91 @@ function DesktopComputer({
 
 function GameBackground({
   asset,
+  mobileAsset,
 }: {
   asset?: Asset
+  mobileAsset?: Asset
 }) {
-  const isVideo =
+  const desktopIsVideo =
     asset?.mimeType?.startsWith('video/')
+
+  const mobileIsVideo =
+    mobileAsset?.mimeType?.startsWith('video/')
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {/* DESKTOP BACKGROUND */}
       {asset?.url ? (
-        isVideo ? (
+        desktopIsVideo ? (
           <video
             src={asset.url}
             autoPlay
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 hidden h-full w-full object-cover object-center sm:block"
           />
         ) : (
           <img
             src={asset.url}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 hidden h-full w-full object-cover object-center sm:block"
             style={{
               imageRendering: 'pixelated',
             }}
           />
         )
       ) : (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-b from-sky-400 via-cyan-200 to-emerald-100" />
-
-          <div
-            className="absolute inset-0 opacity-[0.09]"
-            style={{
-              backgroundImage:
-                'linear-gradient(to right,#0f172a 1px,transparent 1px),linear-gradient(to bottom,#0f172a 1px,transparent 1px)',
-              backgroundSize: '24px 24px',
-            }}
-          />
-
-          <div className="absolute left-[5%] top-[9%] animate-pulse">
-            <PixelCloud />
-          </div>
-
-          <div className="absolute right-[4%] top-[20%] scale-75 animate-pulse sm:scale-100">
-            <PixelCloud />
-          </div>
-
-          <div className="absolute left-[15%] top-[32%] animate-pulse text-2xl opacity-50">
-            ✨
-          </div>
-
-          <div className="absolute right-[14%] top-[45%] animate-pulse text-3xl opacity-40">
-            ⭐
-          </div>
-
-          <div className="absolute bottom-[14%] left-[8%] text-3xl opacity-40">
-            🌳
-          </div>
-
-          <div className="absolute bottom-[12%] right-[8%] text-3xl opacity-40">
-            🍄
-          </div>
-
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-lime-400 to-emerald-700 opacity-25" />
-        </>
+        <div className="absolute inset-0 hidden bg-gradient-to-b from-sky-400 via-cyan-200 to-emerald-100 sm:block" />
       )}
 
-      <div className="absolute inset-0 bg-white/65 backdrop-blur-[1px]" />
+      {/* MOBILE BACKGROUND */}
+      {mobileAsset?.url ? (
+        mobileIsVideo ? (
+          <video
+            src={mobileAsset.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
+          />
+        ) : (
+          <img
+            src={mobileAsset.url}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
+            style={{
+              imageRendering: 'pixelated',
+            }}
+          />
+        )
+      ) : asset?.url ? (
+        desktopIsVideo ? (
+          <video
+            src={asset.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
+          />
+        ) : (
+          <img
+            src={asset.url}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
+            style={{
+              imageRendering: 'pixelated',
+            }}
+          />
+        )
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-b from-sky-400 via-cyan-200 to-emerald-100 sm:hidden" />
+      )}
+
+      {/* Slight readability layer */}
+      <div className="absolute inset-0 bg-black/15" />
     </div>
   )
 }
