@@ -61,15 +61,6 @@ export const PORTFOLIO_QUERY = defineQuery(`
         mimeType,
         originalFilename
       }
-    }
-
-    backgroundMedia{
-      asset->{
-        _id,
-        url,
-        mimeType,
-        originalFilename
-      }
     },
 
     backgroundMediaMobile{
