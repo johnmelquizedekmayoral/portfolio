@@ -686,6 +686,16 @@ function DesktopComputer({
 }: {
   photo?: Profile['mainPhoto']
 }) {
+  const [loadingDots, setLoadingDots] = useState(1)
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setLoadingDots((current) => (current >= 3 ? 1 : current + 1))
+  }, 500)
+
+  return () => clearInterval(interval)
+}, [])
+
   return (
     <div className="relative w-full max-w-2xl pb-3">
       {/* Monitor */}
@@ -721,8 +731,8 @@ function DesktopComputer({
             </div>
           )}
 
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-xs font-black uppercase tracking-wider text-white drop-shadow-md">
-            🎮 Loading Character...
+          <div className="absolute bottom-2 left-1/2 w-full -translate-x-1/2 px-2 text-center font-mono text-[8px] font-black uppercase tracking-normal text-white drop-shadow-md sm:bottom-3 sm:text-xs sm:tracking-wider">
+            🎮 Loading Character{'.'.repeat(loadingDots)}
           </div>
         </div>
 
