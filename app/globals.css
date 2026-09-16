@@ -27,19 +27,18 @@ body {
 
 @keyframes gameBackgroundMove {
   0% {
-    transform: scale(1.06) translate3d(-1%, 0, 0);
+    background-position: 48% center;
   }
 
   50% {
-    transform: scale(1.09) translate3d(1%, -1%, 0);
+    background-position: 52% center;
   }
 
   100% {
-    transform: scale(1.06) translate3d(-1%, 1%, 0);
+    background-position: 48% center;
   }
 }
 
 .game-background-motion {
-  animation: gameBackgroundMove 22s ease-in-out infinite alternate;
-  will-change: transform;
+  animation: gameBackgroundMove 18s ease-in-out infinite;
 }

@@ -794,8 +794,8 @@ function GameBackground({
     phoneAsset?.mimeType?.startsWith('video/')
 
   return (
-    <div className="pointer-events-none fixed -inset-2 z-0 overflow-hidden bg-sky-400 [backface-visibility:hidden] [transform:translateZ(0)]">
-      {/* Desktop */}
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-sky-400">
+      {/* DESKTOP */}
       {desktopAsset?.url ? (
         desktopIsVideo ? (
           <video
@@ -808,7 +808,7 @@ function GameBackground({
           />
         ) : (
           <div
-            className="game-background-motion absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className="game-background-motion absolute inset-0 hidden bg-cover bg-center bg-no-repeat sm:block"
             style={{
               backgroundImage: `url(${desktopAsset.url})`,
               imageRendering: 'pixelated',
@@ -819,7 +819,7 @@ function GameBackground({
         <div className="absolute inset-0 hidden bg-sky-400 sm:block" />
       )}
 
-      {/* Mobile */}
+      {/* MOBILE */}
       {phoneAsset?.url ? (
         phoneIsVideo ? (
           <video
@@ -828,11 +828,11 @@ function GameBackground({
             muted
             loop
             playsInline
-            className="game-background-motion absolute inset-0 h-full w-full object-cover object-center"
+            className="absolute inset-0 h-full w-full object-cover object-center sm:hidden"
           />
         ) : (
           <div
-            className="game-background-motion absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className="game-background-motion absolute inset-0 bg-cover bg-center bg-no-repeat sm:hidden"
             style={{
               backgroundImage: `url(${phoneAsset.url})`,
               imageRendering: 'pixelated',
@@ -842,7 +842,9 @@ function GameBackground({
       ) : (
         <div className="absolute inset-0 bg-sky-400 sm:hidden" />
       )}
-      <div className="absolute inset-0 bg-white/75" />
+
+      {/* readability overlay */}
+      <div className="absolute inset-0 bg-white/65" />
     </div>
   )
 }
