@@ -188,6 +188,12 @@ const statusLabels: Record<string, string> = {
 const clickableClass =
   'cursor-pointer rounded-lg border-[3px] border-slate-900 bg-slate-200 px-4 py-2 font-semibold text-blue-700 underline decoration-2 underline-offset-2 shadow-[3px_3px_0_#0f172a] transition-all duration-150 hover:-translate-y-1 hover:scale-[1.02] hover:bg-slate-100 active:translate-y-0 active:scale-100'
 
+const sectionBoxClass =
+  'rounded-[22px] border-[3px] border-slate-900 bg-white/90 p-5 shadow-[4px_4px_0_#0f172a] sm:p-6'
+
+const miniBoxClass =
+  'rounded-xl border-2 border-slate-900 bg-white/90 p-4 shadow-[2px_2px_0_#0f172a]'
+
 export default function PortfolioClient({
   data,
 }: {
@@ -274,23 +280,25 @@ export default function PortfolioClient({
             photo={profile?.mainPhoto}
           />
 
-          <p className="game-text-readable mt-5 font-mono text-sm font-black uppercase tracking-[0.25em] text-blue-700">
-            🎮 Player One
-          </p>
-
-          <h1 className="game-text-readable mt-3 text-3xl font-black uppercase leading-tight sm:text-5xl">
-            {profile?.fullName ??
-              'John Melquizedek Mayoral'}
-            {profile?.credential
-              ? `, ${profile.credential}`
-              : ''}
-          </h1>
-
-          {titles.length > 0 && (
-            <p className="game-text-readable mt-4 max-w-2xl text-base font-bold leading-7 text-slate-800 sm:text-lg">
-              {titles.join(' • ')}
+          <div className={`mt-5 w-full max-w-2xl ${sectionBoxClass}`}>
+            <p className="font-mono text-sm font-black uppercase tracking-[0.25em] text-violet-700">
+              🎮 Player One
             </p>
-          )}
+
+            <h1 className="mt-3 text-3xl font-black uppercase leading-tight text-slate-950 sm:text-5xl">
+              {profile?.fullName ??
+                'John Melquizedek Mayoral'}
+              {profile?.credential
+                ? `, ${profile.credential}`
+                : ''}
+            </h1>
+
+            {titles.length > 0 && (
+              <p className="mt-4 text-base font-bold leading-7 text-violet-700 sm:text-lg">
+                {titles.join(' • ')}
+              </p>
+            )}
+          </div>
 
           {/* Current Quest */}
           <div className="mt-6 w-full max-w-xl rounded-2xl border-[3px] border-slate-900 bg-yellow-300 px-5 py-4 shadow-[4px_4px_0_#0f172a]">
@@ -361,7 +369,7 @@ export default function PortfolioClient({
         {/* PLAYER STATS */}
         {settings?.showSkills &&
           skillGroups.length > 0 && (
-            <GameSection title="⭐ Player Stats">
+            <GameSection title="⭐ Player Stats" boxed>
               <div className="mx-auto max-w-xl space-y-4">
                 {skillGroups.map((group) => {
                   const value = group.skills.length
@@ -373,7 +381,7 @@ export default function PortfolioClient({
 
                   return (
                     <div key={group.category}>
-                      <div className="game-text-readable mb-2 flex items-end justify-between gap-3 text-left">
+                      <div className="mb-2 flex items-end justify-between gap-3 text-left">
                         <span className="font-mono text-sm font-black uppercase tracking-wide">
                           {skillLabels[group.category] ??
                             group.category}
@@ -402,7 +410,7 @@ export default function PortfolioClient({
         {/* TIMELINE */}
         {settings?.showTimeline &&
           timeline.length > 0 && (
-            <GameSection title="🧭 Journey Log">
+            <GameSection title="🧭 Journey Log" boxed>
               <div className="mx-auto max-w-xl">
                 {timeline.map((item, index) => (
                   <TimelineRow
@@ -420,7 +428,7 @@ export default function PortfolioClient({
         {/* QUESTS */}
         {settings?.showProjects &&
           projects.length > 0 && (
-            <GameSection title="⚔️ Quest Log">
+            <GameSection title="⚔️ Quest Log" boxed>
               <div className="mx-auto max-w-xl space-y-4">
                 {publicProjects.map((project) => (
                   <QuestCard
@@ -456,11 +464,13 @@ export default function PortfolioClient({
         {/* SKILLS */}
         {settings?.showSkills &&
           skills.length > 0 && (
-            <GameSection title="🎒 Skill Inventory">
+            <GameSection title="🎒 Skill Inventory" boxed>
               <div className="mx-auto max-w-xl space-y-6">
                 {skillGroups.map((group) => (
-                  <div key={group.category}>
-                    <h3 className="game-text-readable font-mono text-sm font-black uppercase tracking-[0.15em] text-violet-700">
+                  <div key={group.category}
+                  className={miniBoxClass}
+                  >
+                    <h3 className="font-mono text-sm font-black uppercase tracking-[0.15em] text-violet-700">
                       {skillLabels[group.category] ??
                         group.category}
                     </h3>
@@ -553,7 +563,7 @@ export default function PortfolioClient({
         {/* ACHIEVEMENTS */}
         {settings?.showAchievements &&
           achievements.length > 0 && (
-            <GameSection title="🏆 Achievements">
+            <GameSection title="🏆 Achievements" boxed>
               <div className="mx-auto max-w-xl space-y-3">
                 {achievements.map(
                   (achievement) => (
@@ -600,17 +610,17 @@ export default function PortfolioClient({
           )}
 
         {/* CONTACT */}
-        <GameSection title="💬 Contact">
+        <GameSection title="💬 Contact" boxed>
           <div
             id="contact"
-            className="mx-auto max-w-xl rounded-[22px] border-[4px] border-slate-900 bg-violet-500 p-6 text-white shadow-[5px_5px_0_#0f172a]"
+            className="mx-auto max-w-xl"
           >
-            <p className="text-xl font-black">
+            <p className="text-xl font-black text-violet-700">
               🎮 Ready Player Two?
             </p>
 
             {profile?.location && (
-              <p className="mt-3 text-base font-semibold">
+              <p className="mt-3 text-base font-semibold text-slate-700">
                 📍 {profile.location}
               </p>
             )}
@@ -657,8 +667,8 @@ export default function PortfolioClient({
           </div>
         </GameSection>
 
-        <footer className="px-4 py-8 text-center">
-          <p className="game-text-readable font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-700">
+        <footer className="mt-8 border-t-[4px] border-slate-900 bg-white/85 px-4 py-8 text-center">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-700">
             🎮{' '}
             {profile?.fullName ??
               'John Melquizedek Mayoral'}
@@ -667,7 +677,7 @@ export default function PortfolioClient({
               : ''}
           </p>
 
-          <p className="game-text-readable mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-600">
             Next.js • Sanity • Vercel
           </p>
         </footer>
@@ -875,14 +885,34 @@ function DesktopComputer({
 function GameSection({
   title,
   children,
+  boxed = false,
 }: {
   title: string
   children: React.ReactNode
+  boxed?: boolean
 }) {
+  if (boxed) {
+    return (
+      <section className="px-4 py-7 text-center sm:px-6 sm:py-9">
+        <div
+          className={`mx-auto max-w-3xl ${sectionBoxClass}`}
+        >
+          <h2 className="text-2xl font-black uppercase text-slate-950 sm:text-3xl">
+            {title}
+          </h2>
+
+          <div className="mt-5">
+            {children}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
-    <section className="px-4 py-8 text-center sm:px-6 sm:py-10">
+    <section className="px-4 py-7 text-center sm:px-6 sm:py-9">
       <div className="mx-auto max-w-3xl">
-        <h2 className="game-text-readable text-2xl font-black uppercase sm:text-3xl">
+        <h2 className="text-2xl font-black uppercase sm:text-3xl">
           {title}
         </h2>
 
@@ -939,41 +969,43 @@ function TimelineRow({
         </div>
 
         {!last && (
-          <div className="min-h-24 w-[3px] flex-1 bg-slate-700/55" />
+          <div className="min-h-24 w-[3px] flex-1 bg-slate-500/60" />
         )}
       </div>
 
-      <div className="pb-6">
-        <p className="game-text-readable font-mono text-sm font-black uppercase tracking-wide text-violet-700">
-          {item.yearLabel}
-        </p>
-
-        <h3 className="game-text-readable mt-1 text-xl font-black text-slate-950">
-          {item.title}
-        </h3>
-
-        {item.role && (
-          <p className="game-text-readable mt-1 text-base font-bold text-blue-700">
-            🎯 {item.role}
+      <div className="min-w-0 flex-1 pb-4">
+        <div className={miniBoxClass}>
+          <p className="font-mono text-sm font-black uppercase tracking-wide text-violet-700">
+            {item.yearLabel}
           </p>
-        )}
 
-        {item.summary && (
-          <p className="game-text-readable mt-2 text-base font-medium leading-7 text-slate-900">
-            {item.summary}
-          </p>
-        )}
+          <h3 className="mt-1 text-xl font-black text-slate-950">
+            {item.title}
+          </h3>
 
-        {item.unlocked &&
-          item.unlocked.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {item.unlocked.map((value) => (
-                <SmallTag key={value}>
-                  ✨ {value}
-                </SmallTag>
-              ))}
-            </div>
+          {item.role && (
+            <p className="mt-1 text-base font-bold text-blue-700">
+              🎯 {item.role}
+            </p>
           )}
+
+          {item.summary && (
+            <p className="mt-2 text-base font-medium leading-7 text-slate-800">
+              {item.summary}
+            </p>
+          )}
+
+          {item.unlocked &&
+            item.unlocked.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {item.unlocked.map((value) => (
+                  <SmallTag key={value}>
+                    ✨ {value}
+                  </SmallTag>
+                ))}
+              </div>
+            )}
+        </div>
       </div>
     </div>
   )
@@ -1052,7 +1084,7 @@ function CompactProjectGroup({
 }) {
   return (
     <div className="mx-auto mt-7 max-w-xl">
-      <p className="game-text-readable font-mono text-sm font-black uppercase tracking-wide text-slate-700">
+      <p className="font-mono text-sm font-black uppercase tracking-wide text-slate-700">
         {emoji} {title}
       </p>
 
