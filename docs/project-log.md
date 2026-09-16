@@ -39,17 +39,38 @@ Redo the homepage.
 ## September 16, 2026
 
 Goal:
-Redesign the portfolio, deploy it publicly, and make the site content editable without changing code.
+Deploy my portfolio publicly, convert it into an editable CMS-driven website, and redesign it around my game-development identity.
 
 Completed:
-- Redesigned the portfolio into a retro game / RPG-style interface
-- Added character-style sections for profile, timeline, projects, skills, achievements, engineering, and contact
-- Added placeholders and support for multiple profile images
+- Redesigned the original portfolio into a game-inspired personal website
+- Changed the visual direction from a conventional developer portfolio to a bright RPG / retro-game interface
+- Made the layout mobile-first and primarily single-column for easier scrolling and reading
+- Created a game-style player profile with character information, current quest, statistics, skill inventory, achievements, and quest logs
+- Created an 8-bit RPG character placeholder for my future pixel character
+- Designed the hero section as a retro desktop-computer loading screen with monitor, CPU, keyboard, and mouse
+- Added support for a future custom poster / loading-screen image
+- Created a fixed game-style background that remains stationary while the page scrolls
+- Added support for custom background images, GIFs, and browser-compatible videos
+- Increased text readability and simplified section spacing
+- Converted the timeline into a vertically scrolling journey log
+- Changed the timeline to reverse chronological order
+- Redesigned projects as RPG-style quests
+- Added expandable floating project panels for additional project information
+- Added project proof / evidence support for:
+- Images and screenshots
+- Animated GIFs
+- Videos
+- Files and documents
+- External links
+- Added clearer link and download indicators to interactive elements
+- Standardized clickable elements so links and buttons are easier to identify
+- Added hover / cursor feedback to interactive controls
+- Created GitHub repository integration and continued version control using Git
 - Deployed the portfolio publicly using Vercel
-- Connected GitHub repository to Vercel for automatic deployments
+- Connected GitHub to Vercel for automatic production deployments
 - Created a Sanity CMS project
-- Created a standalone Sanity Studio
-- Added structured CMS schemas for:
+- Created and deployed a standalone Sanity Studio
+- Created structured Sanity schemas for:
 - Profile
 - Timeline
 - Projects
@@ -58,64 +79,68 @@ Completed:
 - Achievements
 - Engineering Highlights
 - Site Settings
-- Configured Profile and Site Settings as singleton documents
-- Added editable profile information, photos, resume, contact information, and social links
-- Migrated existing timeline data into Sanity
-- Migrated project data into Sanity
-- Migrated skills into Sanity
-- Migrated achievements into Sanity
-- Connected the Next.js frontend to the Sanity dataset
-- Created a GROQ query that retrieves all portfolio content
-- Created and tested a temporary CMS test page
-- Verified that Sanity successfully returns:
-- Profile data
-- Images
-- Timeline entries
-- Projects
-- Skills
-- Achievements
-- Converted the homepage structure so portfolio content can come from Sanity instead of hardcoded arrays
+- Added editable profile information, contact details, résumé, social links, images, avatar, and site settings
+- Added editable media fields for game background and project evidence
+- Migrated existing timeline entries into Sanity
+- Migrated existing projects into Sanity
+- Migrated existing skills into Sanity
+- Migrated existing achievements into Sanity
+- Connected the Next.js frontend to the Sanity Content Lake using GROQ
+- Created and verified a CMS test page before connecting the production homepage
+- Converted the production homepage from hardcoded content to Sanity-driven content
 - Added CMS-controlled section visibility and ordering
-- Configured editable SEO title and description
-- Fixed nested Git repository issue inside the Studio folder
-- Fixed Sanity schema import resolution issue
-- Fixed Vercel build configuration by excluding the standalone Sanity Studio from the Next.js TypeScript build
+- Added editable SEO title and description
+- Configured the public Sanity dataset so the website can read published content while editing remains restricted to authenticated users
+- Fixed a nested Git repository issue caused by the standalone Sanity Studio
+- Fixed TypeScript / Sanity schema import resolution issues
+- Fixed a Vercel production build failure caused by the Next.js TypeScript configuration compiling the separate Sanity Studio
+- Separated the Next.js website build from the Sanity Studio build
+- Established a workflow where normal portfolio updates no longer require editing React code
 
 Technologies encountered:
+- Git
+- GitHub
 - Vercel
 - Sanity CMS
 - Sanity Studio
+- Sanity Content Lake
 - GROQ
-- Next.js server components
-- React client components
+- Next.js
+- React
 - TypeScript
 - Tailwind CSS
-- Git
-- GitHub
-- Content Management Systems
+- Node.js
+- npm
+- HTML media elements
+- Responsive web design
+- CMS schema design
 - Structured content
 - CDN / caching
-- Deployment pipelines
+- Production build pipelines
+- Automatic deployment
 
 What I learned:
-I learned how to separate website content from website design. Instead of storing portfolio information directly inside React components, the content can be stored in a CMS and fetched by the frontend.
-I learned that this allows the visual layout to be redesigned in the future without recreating all of the portfolio information.
-I also learned how GitHub and Vercel work together: pushing a commit to the main branch automatically triggers a new Vercel deployment.
-I encountered and fixed several real development issues, including nested Git repositories, TypeScript module resolution, separate dependency environments, and failed production builds.
-Most importantly, I learned how a modern website can be divided into separate systems:
+I learned how a modern website can separate its content, frontend, source code, and hosting into independent systems.
 
-Sanity → manages content
-Next.js → renders the website
-GitHub → stores the source code
-Vercel → hosts and deploys the website
+Sanity stores and manages the portfolio content.
 
-The portfolio is now designed so normal content updates such as adding projects, skills, achievements, photos, experience, or changing profile information can be done through Sanity instead of editing code.
+Next.js and React determine how that content is displayed.
+
+Git and GitHub store and track the source code.
+
+Vercel builds and hosts the public website.
+
+I learned why structured content is important. My projects, timeline, skills, achievements, contact information, images, and other portfolio data are no longer tied directly to one visual layout. This means I can redesign the frontend later without recreating all of my content.
+
+I also learned how to create CMS schemas, query content using GROQ, render CMS data in Next.js, handle uploaded files and media, create interactive React components, and troubleshoot real production deployment problems.
+
+I encountered and fixed issues involving nested Git repositories, TypeScript module resolution, separate dependency environments, Sanity schemas, Vercel builds, and frontend/CMS integration.
+
+Most importantly, normal portfolio maintenance can now be performed through Sanity Studio. Adding projects, screenshots, videos, skills, achievements, résumé updates, contact information, or other content should no longer require manually editing the source code.
 
 //finished//
 
 Next:
-
-- Verify the final production deployment
-- Finalize portfolio content
-- Organize and upload older programming, game development, and engineering projects
-- Move on to the next AI / automation portfolio project
+- Populate the portfolio with final photos, pixel artwork, project evidence, and complete résumé information
+- Organize and archive older programming, game-development, robotics, and engineering work
+- Begin Portfolio Project #2 focused on AI tools / automation
