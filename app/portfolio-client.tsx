@@ -26,10 +26,6 @@ type Profile = {
     asset?: Asset
   }
 
-  pixelAvatar?: {
-    asset?: Asset
-  }
-
   resume?: {
     asset?: Asset
   }
@@ -242,7 +238,6 @@ export default function PortfolioClient({
       }))
       .filter((group) => group.skills.length > 0)
 
-    // Highest stat first
     return groups.sort(
       (a, b) => b.skills.length - a.skills.length,
     )
@@ -272,20 +267,18 @@ export default function PortfolioClient({
         mobileAsset={settings?.backgroundMediaMobile?.asset}
       />
 
-      <main className="game-text-readable relative z-10 min-h-screen text-slate-900">
+      <main className="relative z-10 min-h-screen text-slate-900">
         {/* HERO */}
         <section className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 pb-7 pt-5 text-center sm:px-6">
-          {/* COMPUTER SETUP */}
           <DesktopComputer
             photo={profile?.mainPhoto}
           />
 
-          <p className="mt-5 font-mono text-sm font-black uppercase tracking-[0.25em] text-blue-700">
+          <p className="game-text-readable mt-5 font-mono text-sm font-black uppercase tracking-[0.25em] text-blue-700">
             🎮 Player One
           </p>
 
-          {/* SAME COLOR: NAME + ECT */}
-          <h1 className="mt-3 text-3xl font-black uppercase leading-tight sm:text-5xl">
+          <h1 className="game-text-readable mt-3 text-3xl font-black uppercase leading-tight sm:text-5xl">
             {profile?.fullName ??
               'John Melquizedek Mayoral'}
             {profile?.credential
@@ -294,7 +287,7 @@ export default function PortfolioClient({
           </h1>
 
           {titles.length > 0 && (
-            <p className="mt-4 max-w-2xl text-base font-bold leading-7 text-slate-700 sm:text-lg">
+            <p className="game-text-readable mt-4 max-w-2xl text-base font-bold leading-7 text-slate-800 sm:text-lg">
               {titles.join(' • ')}
             </p>
           )}
@@ -338,7 +331,7 @@ export default function PortfolioClient({
             />
           </div>
 
-          {/* Actions only */}
+          {/* Actions */}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {profile?.resume?.asset?.url && (
               <ActionLink
@@ -380,11 +373,10 @@ export default function PortfolioClient({
 
                   return (
                     <div key={group.category}>
-                      <div className="mb-2 flex items-end justify-between gap-3 text-left">
+                      <div className="game-text-readable mb-2 flex items-end justify-between gap-3 text-left">
                         <span className="font-mono text-sm font-black uppercase tracking-wide">
-                          {skillLabels[
-                            group.category
-                          ] ?? group.category}
+                          {skillLabels[group.category] ??
+                            group.category}
                         </span>
 
                         <span className="font-mono text-sm font-black text-violet-700">
@@ -468,23 +460,20 @@ export default function PortfolioClient({
               <div className="mx-auto max-w-xl space-y-6">
                 {skillGroups.map((group) => (
                   <div key={group.category}>
-                    <h3 className="font-mono text-sm font-black uppercase tracking-[0.15em] text-violet-700">
-                      {skillLabels[
-                        group.category
-                      ] ?? group.category}
+                    <h3 className="game-text-readable font-mono text-sm font-black uppercase tracking-[0.15em] text-violet-700">
+                      {skillLabels[group.category] ??
+                        group.category}
                     </h3>
 
                     <div className="mt-3 flex flex-wrap justify-center gap-2">
-                      {group.skills.map(
-                        (skill) => (
-                          <span
-                            key={skill._id}
-                            className="rounded-lg border-2 border-slate-900 bg-white px-3 py-2 text-sm font-bold shadow-[2px_2px_0_#0f172a]"
-                          >
-                            {skill.name}
-                          </span>
-                        ),
-                      )}
+                      {group.skills.map((skill) => (
+                        <span
+                          key={skill._id}
+                          className="rounded-lg border-2 border-slate-900 bg-white px-3 py-2 text-sm font-bold shadow-[2px_2px_0_#0f172a]"
+                        >
+                          {skill.name}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -544,6 +533,17 @@ export default function PortfolioClient({
                         {item.summary}
                       </p>
                     )}
+
+                    {item.tools &&
+                      item.tools.length > 0 && (
+                        <div className="mt-4 flex flex-wrap justify-center gap-2">
+                          {item.tools.map((tool) => (
+                            <SmallTag key={tool}>
+                              {tool}
+                            </SmallTag>
+                          ))}
+                        </div>
+                      )}
                   </SimpleCard>
                 ))}
               </div>
@@ -572,18 +572,24 @@ export default function PortfolioClient({
 
                         {achievement.yearLabel && (
                           <p className="mt-1 font-mono text-xs font-black text-violet-600">
-                            {
-                              achievement.yearLabel
-                            }
+                            {achievement.yearLabel}
                           </p>
                         )}
 
                         {achievement.description && (
                           <p className="mt-2 text-base leading-7 text-slate-600">
-                            {
-                              achievement.description
-                            }
+                            {achievement.description}
                           </p>
+                        )}
+
+                        {achievement.url && (
+                          <div className="mt-3">
+                            <ActionLink
+                              href={achievement.url}
+                              label="Open"
+                              icon="↗"
+                            />
+                          </div>
                         )}
                       </div>
                     </div>
@@ -652,7 +658,7 @@ export default function PortfolioClient({
         </GameSection>
 
         <footer className="px-4 py-8 text-center">
-          <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-600">
+          <p className="game-text-readable font-mono text-xs font-bold uppercase tracking-[0.2em] text-slate-700">
             🎮{' '}
             {profile?.fullName ??
               'John Melquizedek Mayoral'}
@@ -661,7 +667,7 @@ export default function PortfolioClient({
               : ''}
           </p>
 
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="game-text-readable mt-2 text-sm text-slate-600">
             Next.js • Sanity • Vercel
           </p>
         </footer>
@@ -679,7 +685,84 @@ export default function PortfolioClient({
   )
 }
 
-/* ---------------- COMPUTER HERO ---------------- */
+/* ---------------- BACKGROUND ---------------- */
+
+function GameBackground({
+  asset,
+  mobileAsset,
+}: {
+  asset?: Asset
+  mobileAsset?: Asset
+}) {
+  const desktopAsset = asset ?? mobileAsset
+  const phoneAsset = mobileAsset ?? asset
+
+  return (
+    <div
+      className="pointer-events-none fixed inset-x-0 top-0 z-0 overflow-hidden bg-sky-200"
+      style={{
+        height: '100lvh',
+      }}
+    >
+      <BackgroundLayer
+        asset={desktopAsset}
+        className="hidden sm:block"
+      />
+
+      <BackgroundLayer
+        asset={phoneAsset}
+        className="block sm:hidden"
+      />
+
+      {/* White overlay: 25% */}
+      <div className="absolute inset-0 bg-white/25" />
+    </div>
+  )
+}
+
+function BackgroundLayer({
+  asset,
+  className,
+}: {
+  asset?: Asset
+  className: string
+}) {
+  const isVideo =
+    asset?.mimeType?.startsWith('video/')
+
+  if (!asset?.url) {
+    return (
+      <div
+        className={`absolute inset-0 bg-sky-300 ${className}`}
+      />
+    )
+  }
+
+  if (isVideo) {
+    return (
+      <video
+        src={asset.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className={`absolute -inset-[2%] h-[104%] w-[104%] object-cover object-center ${className}`}
+      />
+    )
+  }
+
+  return (
+    <div
+      className={`absolute -inset-[2%] bg-cover bg-center bg-no-repeat ${className}`}
+      style={{
+        backgroundImage: `url(${asset.url})`,
+        imageRendering: 'pixelated',
+      }}
+    />
+  )
+}
+
+/* ---------------- COMPUTER ---------------- */
 
 function DesktopComputer({
   photo,
@@ -688,19 +771,20 @@ function DesktopComputer({
 }) {
   const [loadingDots, setLoadingDots] = useState(1)
 
-useEffect(() => {
-  const interval = setInterval(() => {
-    setLoadingDots((current) => (current >= 3 ? 1 : current + 1))
-  }, 500)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLoadingDots((current) =>
+        current >= 3 ? 1 : current + 1,
+      )
+    }, 500)
 
-  return () => clearInterval(interval)
-}, [])
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="relative w-full max-w-2xl pb-3">
       {/* Monitor */}
       <div className="relative mx-auto w-[92%] rounded-[18px] border-[6px] border-slate-900 bg-slate-700 p-3 shadow-[8px_8px_0_#0f172a] sm:w-[88%]">
-        {/* Screen */}
         <div className="relative aspect-[16/9] overflow-hidden border-[4px] border-slate-950 bg-gradient-to-br from-blue-500 via-violet-500 to-fuchsia-400">
           {photo?.asset?.url ? (
             <>
@@ -710,10 +794,10 @@ useEffect(() => {
                   photo.alt ??
                   'Main loading screen'
                 }
-                className="h-full w-full object-cover object-top"
+                className="h-full w-full object-cover object-center"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
             </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-5 text-white">
@@ -721,8 +805,8 @@ useEffect(() => {
                 🎮
               </p>
 
-              <p className="mt-3 font-mono text-sm font-black uppercase tracking-[0.18em]">
-                Loading Player...
+              <p className="mt-3 font-mono text-xs font-black uppercase tracking-[0.15em] sm:text-sm">
+                Loading Player
               </p>
 
               <div className="mt-4 h-4 w-[65%] overflow-hidden border-2 border-white bg-slate-800">
@@ -731,25 +815,28 @@ useEffect(() => {
             </div>
           )}
 
-          <div className="absolute bottom-2 left-1/2 w-full -translate-x-1/2 px-2 text-center font-mono text-[8px] font-black uppercase tracking-normal text-white drop-shadow-md sm:bottom-3 sm:text-xs sm:tracking-wider">
-            🎮 Loading Character{'.'.repeat(loadingDots)}
+          <div className="absolute bottom-2 left-1/2 w-full -translate-x-1/2 px-1 text-center font-mono text-[7px] font-black uppercase tracking-normal text-white drop-shadow-md min-[400px]:text-[8px] sm:bottom-3 sm:text-xs sm:tracking-wider">
+            🎮 Loading Character
+            {'.'.repeat(loadingDots)}
           </div>
         </div>
 
-        {/* monitor light */}
         <div className="mx-auto mt-2 h-2 w-2 rounded-full bg-lime-400" />
       </div>
 
       {/* Monitor stand */}
       <div className="mx-auto h-8 w-7 bg-slate-800" />
+
       <div className="mx-auto h-3 w-28 border-[3px] border-slate-900 bg-slate-500" />
 
-      {/* Desk area */}
+      {/* Desk pieces */}
       <div className="relative mx-auto mt-3 h-12 w-[94%]">
         {/* CPU */}
         <div className="absolute bottom-0 left-[2%] h-24 w-14 rounded-md border-[4px] border-slate-900 bg-slate-700 shadow-[3px_3px_0_#0f172a] sm:h-28 sm:w-16">
           <div className="mx-auto mt-3 h-2 w-7 bg-slate-950" />
+
           <div className="mx-auto mt-3 h-3 w-3 rounded-full bg-lime-400" />
+
           <div className="mx-auto mt-3 grid w-8 grid-cols-3 gap-1 opacity-50">
             {Array.from({length: 9}).map(
               (_, index) => (
@@ -785,102 +872,6 @@ useEffect(() => {
   )
 }
 
-/* ---------------- BACKGROUND ---------------- */
-
-function GameBackground({
-  asset,
-  mobileAsset,
-}: {
-  asset?: Asset
-  mobileAsset?: Asset
-}) {
-  const desktopAsset = asset ?? mobileAsset
-  const phoneAsset = mobileAsset ?? asset
-
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-sky-200">
-      {/* DESKTOP */}
-      <BackgroundLayer
-        asset={desktopAsset}
-        className="hidden sm:block"
-      />
-
-      {/* MOBILE */}
-      <BackgroundLayer
-        asset={phoneAsset}
-        className="block sm:hidden"
-      />
-
-      {/* White readability overlay */}
-      <div className="absolute inset-0 bg-white/50" />
-    </div>
-  )
-}
-
-function BackgroundLayer({
-  asset,
-  className,
-}: {
-  asset?: Asset
-  className: string
-}) {
-  const isVideo =
-    asset?.mimeType?.startsWith('video/')
-
-  if (!asset?.url) {
-    return (
-      <div
-        className={`absolute inset-0 bg-sky-300 ${className}`}
-      />
-    )
-  }
-
-  if (isVideo) {
-    return (
-      <video
-        src={asset.url}
-        autoPlay
-        muted
-        loop
-        playsInline
-        className={`game-background-motion absolute -inset-[6%] h-[112%] w-[112%] object-cover object-center ${className}`}
-      />
-    )
-  }
-
-  return (
-    <div
-      className={`game-background-motion absolute -inset-[6%] bg-cover bg-center bg-no-repeat ${className}`}
-      style={{
-        backgroundImage: `url(${asset.url})`,
-        imageRendering: 'pixelated',
-      }}
-    />
-  )
-}
-
-function PixelCloud() {
-  return (
-    <div className="grid grid-cols-6 gap-0 opacity-45">
-      {[
-        0, 0, 1, 1, 0, 0,
-        0, 1, 1, 1, 1, 0,
-        1, 1, 1, 1, 1, 1,
-      ].map((filled, index) => (
-        <div
-          key={index}
-          className={`h-4 w-4 sm:h-5 sm:w-5 ${
-            filled
-              ? 'bg-white'
-              : 'bg-transparent'
-          }`}
-        />
-      ))}
-    </div>
-  )
-}
-
-
 /* ---------------- SECTIONS ---------------- */
 
 function GameSection({
@@ -893,7 +884,7 @@ function GameSection({
   return (
     <section className="px-4 py-8 text-center sm:px-6 sm:py-10">
       <div className="mx-auto max-w-3xl">
-        <h2 className="text-2xl font-black uppercase sm:text-3xl">
+        <h2 className="game-text-readable text-2xl font-black uppercase sm:text-3xl">
           {title}
         </h2>
 
@@ -950,27 +941,27 @@ function TimelineRow({
         </div>
 
         {!last && (
-          <div className="min-h-24 w-[3px] flex-1 bg-slate-400/60" />
+          <div className="min-h-24 w-[3px] flex-1 bg-slate-700/55" />
         )}
       </div>
 
       <div className="pb-6">
-        <p className="font-mono text-sm font-black uppercase tracking-wide text-violet-600">
+        <p className="game-text-readable font-mono text-sm font-black uppercase tracking-wide text-violet-700">
           {item.yearLabel}
         </p>
 
-        <h3 className="mt-1 text-xl font-black">
+        <h3 className="game-text-readable mt-1 text-xl font-black text-slate-950">
           {item.title}
         </h3>
 
         {item.role && (
-          <p className="mt-1 text-base font-bold text-blue-600">
+          <p className="game-text-readable mt-1 text-base font-bold text-blue-700">
             🎯 {item.role}
           </p>
         )}
 
         {item.summary && (
-          <p className="mt-2 text-base leading-7 text-slate-700">
+          <p className="game-text-readable mt-2 text-base font-medium leading-7 text-slate-900">
             {item.summary}
           </p>
         )}
@@ -1063,7 +1054,7 @@ function CompactProjectGroup({
 }) {
   return (
     <div className="mx-auto mt-7 max-w-xl">
-      <p className="font-mono text-sm font-black uppercase tracking-wide text-slate-600">
+      <p className="game-text-readable font-mono text-sm font-black uppercase tracking-wide text-slate-700">
         {emoji} {title}
       </p>
 
@@ -1098,7 +1089,7 @@ function CompactProjectGroup({
   )
 }
 
-/* ---------------- MODAL ---------------- */
+/* ---------------- PROJECT MODAL ---------------- */
 
 function ProjectModal({
   project,
