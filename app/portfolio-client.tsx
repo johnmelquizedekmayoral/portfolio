@@ -875,7 +875,7 @@ function GameBackground({
       )}
 
       {/* Slight readability layer */}
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-white/25" />
     </div>
   )
 }
