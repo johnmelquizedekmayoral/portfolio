@@ -842,6 +842,7 @@ function GameBackground({
       ) : (
         <div className="absolute inset-0 bg-sky-400 sm:hidden" />
       )}
+      <div className="absolute inset-0 bg-white/50" />
     </div>
   )
 }
