@@ -712,7 +712,7 @@ function GameBackground({
       />
 
       {/* White readability overlay */}
-      <div className="absolute inset-0 bg-white/25" />
+      <div className="absolute inset-0 bg-white/50" />
     </div>
   )
 }
